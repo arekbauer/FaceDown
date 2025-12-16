@@ -22,6 +22,12 @@ sealed interface TimerState {
         val originalRemainingSeconds: Long // Remember where we paused
     ) : TimerState
 
+    data class Paused(
+        val remainingSeconds: Long,
+        val totalSeconds: Long,
+        val currentProgress: Float
+    ) : TimerState
+
     // Session Failed (Held face up too long)
     data object Failed : TimerState
 

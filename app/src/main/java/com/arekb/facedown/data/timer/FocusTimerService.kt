@@ -29,6 +29,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 object ServiceConstants {
+    const val ACTION_START = "ACTION_START"
+    const val ACTION_PAUSE = "ACTION_PAUSE"
+    const val ACTION_RESUME = "ACTION_RESUME"
+    const val ACTION_STOP = "ACTION_STOP"
+
     const val STARTING_COUNTDOWN = 5
     const val GRACE_LIMIT = 10
 }
@@ -44,19 +49,70 @@ class FocusTimerService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var timerJob: Job? = null
 
+    private var storedDurationMillis: Long = 0L
+    private var storedTotalDurationMillis: Long = 0L
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val durationMinutes = intent?.getIntExtra("DURATION", 25) ?: 25 // hardcoded for now
-        startSession(durationMinutes)
+        val action = intent?.action
 
-        // Foreground Service Notification (Required by Android)
-        startForeground(1, createNotification("Focus Session Active"))
+        if (action == ServiceConstants.ACTION_START) {
+            startForeground(1, createNotification("Focus Session Active"))
+        }
 
+        when (action) {
+            ServiceConstants.ACTION_START -> {
+                val minutes = intent.getIntExtra("DURATION", 25)
+                storedTotalDurationMillis = minutes * 60 * 1000L
+                startTimerLoop(storedTotalDurationMillis, isResume = false)
+            }
+            ServiceConstants.ACTION_PAUSE -> {
+                pauseTimer()
+            }
+            ServiceConstants.ACTION_RESUME -> {
+                resumeTimer()
+            }
+            ServiceConstants.ACTION_STOP -> {
+                failSession() // Or cancel
+            }
+            else -> {
+                // If we aren't already running, stop so we don't hang in limbo
+                if (timerJob?.isActive != true) {
+                    stopSelf()
+                }
+            }
+        }
         return START_NOT_STICKY
     }
 
-    private fun startSession(minutes: Int) {
-        val durationMillis = minutes * 60 * 1000L
+    private fun pauseTimer() {
+        // 1. Cancel the running loop
+        timerJob?.cancel()
 
+        // 2. Turn OFF DND (Critical for taking calls!)
+        dndManager.turnOffDnd()
+
+        // 3. Update UI to Paused State
+        val remainingSeconds = storedDurationMillis / 1000
+        val totalSeconds = storedTotalDurationMillis / 1000
+
+        TimerRepository.updateState(
+            TimerState.Paused(
+                remainingSeconds = remainingSeconds,
+                totalSeconds = totalSeconds,
+                currentProgress = 1f - (remainingSeconds.toFloat() / totalSeconds.toFloat())
+            )
+        )
+
+        // 4. Update Notification
+        // notificationManager.notify(1, createNotification("Session Paused"))
+    }
+
+    private fun resumeTimer() {
+        // Resume with the time we had left
+        startTimerLoop(storedDurationMillis, isResume = true)
+    }
+
+    private fun startTimerLoop(durationMillis: Long, isResume: Boolean) {
         dndManager.turnOnDnd()
 
         timerJob?.cancel()
@@ -89,6 +145,8 @@ class FocusTimerService : Service() {
 
                 val now = System.currentTimeMillis()
                 val timeRemainingMillis = sessionEndTime - now
+                storedDurationMillis = timeRemainingMillis
+
                 val secondsRemaining = (timeRemainingMillis / 1000).coerceAtLeast(0)
 
                 // 1. CHECK FOR COMPLETION
@@ -123,18 +181,16 @@ class FocusTimerService : Service() {
                     )
 
                 } else {
-                    // FACE DOWN (Safe Zone)
+                    // Face down logic
 
                     // A. Reset Grace Deadline (They recovered!)
                     gracePeriodDeadline = null
 
-                    // B. Update UI with Running State
-                    val totalDurationSeconds = minutes * 60
                     TimerRepository.updateState(
                         TimerState.Running(
                             remainingSeconds = secondsRemaining,
-                            totalSeconds = totalDurationSeconds.toLong(),
-                            currentProgress = 1f - (secondsRemaining.toFloat() / totalDurationSeconds.toFloat())
+                            totalSeconds = storedTotalDurationMillis / 1000,
+                            currentProgress = 1f - (secondsRemaining.toFloat() / (storedTotalDurationMillis / 1000).toFloat())
                         )
                     )
                 }

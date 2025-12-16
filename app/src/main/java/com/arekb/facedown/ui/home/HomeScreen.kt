@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Phone
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -46,6 +48,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.arekb.facedown.data.timer.FocusTimerService
+import com.arekb.facedown.data.timer.ServiceConstants
 import com.arekb.facedown.domain.model.OrientationState
 import com.arekb.facedown.domain.model.TimerState
 
@@ -58,7 +61,6 @@ fun HomeScreen(
 
     // State to track permission status
     var hasNotificationPermission by remember { mutableStateOf(false) }
-
     var showPermissionDialog by remember { mutableStateOf(false) }
 
     // Lifecycle Observer: Re-check permission whenever the app Resumes
@@ -79,13 +81,30 @@ fun HomeScreen(
     // Debug orientation
     if (hasNotificationPermission) {
         // Permission Granted: Show the Sensor Debug UI
-        val orientationState by viewModel.orientationState.collectAsState()
-        SensorStatusView(state = orientationState)
+        val timerState by viewModel.timerState.collectAsState()
+
+        TimerSessionView(
+            state = timerState,
+            onStartClicked = { minutes ->
+                // GATEKEEPER CHECK (Double safety)
+                if (hasNotificationPermission) {
+                    sendTimerCommand(context, ServiceConstants.ACTION_START, minutes)
+                } else {
+                    showPermissionDialog = true
+                }
+            },
+            onReset = {
+                // Stop service if running, then reset UI
+                sendTimerCommand(context, ServiceConstants.ACTION_STOP)
+                viewModel.resetTimer()
+            }
+        )
     } else {
         // Permission Denied: Show the Request UI
         PermissionRequestView(context = context)
     }
 
+    // Dialog Logic
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
@@ -112,21 +131,6 @@ fun HomeScreen(
             }
         )
     }
-
-    val timerState by viewModel.timerState.collectAsState()
-
-    TimerSessionView(
-        state = timerState,
-        onStartClicked = { minutes ->
-            // THE GATEKEEPER LOGIC
-            if (viewModel.hasDndPermission()) {
-                startTimerService(context, minutes)
-            } else {
-                showPermissionDialog = true
-            }
-        },
-        onReset = { viewModel.resetTimer() }
-    )
 }
 
 @Composable
@@ -143,6 +147,7 @@ fun TimerSessionView(
         is TimerState.Startup -> MaterialTheme.colorScheme.secondary
         is TimerState.Running -> Color(0xFF4CAF50) // Calm Green
         is TimerState.GracePeriod -> Color(0xFFFF9800) // Panic Orange
+        is TimerState.Paused -> Color(0xFF81C784) // Resume Green
         is TimerState.Failed -> Color(0xFFF44336) // Failure Red
         is TimerState.Completed -> Color(0xFF2196F3) // Success Blue
     }
@@ -249,6 +254,56 @@ fun TimerSessionView(
                             color = Color.White
                         )
                     }
+                    // Add Pause Button
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Button(
+                        onClick = {
+                            sendTimerCommand(context, ServiceConstants.ACTION_PAUSE)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                    ) {
+                        Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.Black)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Emergency Pause", color = Color.Black)
+                    }
+                }
+                is TimerState.Paused -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Session Paused",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.Black
+                        )
+                        Text(
+                            text = "DND is OFF. You can take calls.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Text(
+                            text = formatTime(state.remainingSeconds),
+                            style = MaterialTheme.typography.displayLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Button(
+                            onClick = {
+                                sendTimerCommand(context, ServiceConstants.ACTION_RESUME)
+                            }
+                        ) {
+                            Text("Resume Session")
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        TextButton(onClick = onReset) {
+                            Text("Abandon Session")
+                        }
+                    }
                 }
 
                 is TimerState.Failed -> {
@@ -292,11 +347,13 @@ fun formatTime(seconds: Long): String {
     return "%02d:%02d".format(m, s)
 }
 
-// Helper: Start Service Logic
-fun startTimerService(context: Context, minutes: Int) {
+fun sendTimerCommand(context: Context, action: String, minutes: Int = 0) {
     val intent = Intent(context, FocusTimerService::class.java).apply {
-        putExtra("DURATION", minutes)
+        this.action = action
+        if (minutes > 0) putExtra("DURATION", minutes)
     }
+    // For Start, we must use startForegroundService (Android O+)
+    // For Pause/Resume commands while it's already running, startService is sufficient
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         context.startForegroundService(intent)
     } else {
