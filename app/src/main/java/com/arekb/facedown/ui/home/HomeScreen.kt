@@ -1,0 +1,324 @@
+package com.arekb.facedown.ui.home
+
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Phone
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.arekb.facedown.data.timer.FocusTimerService
+import com.arekb.facedown.domain.model.OrientationState
+import com.arekb.facedown.domain.model.TimerState
+
+@Composable
+fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    // State to track permission status
+    var hasNotificationPermission by remember { mutableStateOf(false) }
+
+    // Lifecycle Observer: Re-check permission whenever the app Resumes
+    // (User comes back from Settings screen)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                hasNotificationPermission = notificationManager.isNotificationPolicyAccessGranted
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // Debug orientation
+//    if (hasNotificationPermission) {
+//        // Permission Granted: Show the Sensor Debug UI
+//        val orientationState by viewModel.orientationState.collectAsState()
+//        SensorStatusView(state = orientationState)
+//    } else {
+//        // Permission Denied: Show the Request UI
+//        PermissionRequestView(context = context)
+//    }
+
+    val timerState by viewModel.timerState.collectAsState()
+
+    TimerSessionView(
+        state = timerState,
+        onReset = { viewModel.resetTimer() }
+    )
+}
+
+@Composable
+fun TimerSessionView(
+    state: TimerState,
+    onReset: () -> Unit
+) {
+    val context = LocalContext.current
+
+    // Smooth color transitions based on state
+    val targetColor = when (state) {
+        is TimerState.Idle -> MaterialTheme.colorScheme.surface
+        is TimerState.Startup -> MaterialTheme.colorScheme.secondary
+        is TimerState.Running -> Color(0xFF4CAF50) // Calm Green
+        is TimerState.GracePeriod -> Color(0xFFFF9800) // Panic Orange
+        is TimerState.Failed -> Color(0xFFF44336) // Failure Red
+        is TimerState.Completed -> Color(0xFF2196F3) // Success Blue
+    }
+
+    val backgroundColor by animateColorAsState(
+        targetValue = targetColor,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "BgColor"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            // --- STATE MACHINE UI ---
+            when (state) {
+                is TimerState.Idle -> {
+                    Text(
+                        text = "FaceDown",
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Button(
+                        onClick = { startTimerService(context, minutes = 1) },
+                        modifier = Modifier.height(56.dp)
+                    ) {
+                        Text("Start 1 Min Focus Test")
+                    }
+                }
+
+                is TimerState.Startup -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Get Ready",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // A visual instruction
+                        Icon(
+                            imageVector = Icons.Rounded.Phone,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = Color.Black.copy(alpha = 0.6f)
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Text(
+                            text = "Place phone face down in:",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.Black.copy(alpha = 0.8f)
+                        )
+
+                        Text(
+                            text = state.countdownSeconds.toString(),
+                            style = MaterialTheme.typography.displayLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                is TimerState.Running -> {
+                    Text(
+                        text = formatTime(state.remainingSeconds),
+                        style = MaterialTheme.typography.displayLarge,
+                        fontSize = 80.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Focusing...",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+
+                is TimerState.GracePeriod -> {
+                    Text(
+                        text = "PUT IT DOWN!",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Black
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    // Big Red Warning Circle
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .background(Color.Red),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = state.remainingGraceSeconds.toString(),
+                            style = MaterialTheme.typography.displayMedium,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                is TimerState.Failed -> {
+                    Text(
+                        text = "Session Broken",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = onReset,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                    ) {
+                        Text("Try Again", color = Color.Red)
+                    }
+                }
+
+                is TimerState.Completed -> {
+                    Text(
+                        text = "Session Complete!",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = onReset,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                    ) {
+                        Text("Done", color = Color.Blue)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Helper: Format Seconds to MM:SS
+fun formatTime(seconds: Long): String {
+    val m = seconds / 60
+    val s = seconds % 60
+    return "%02d:%02d".format(m, s)
+}
+
+// Helper: Start Service Logic
+fun startTimerService(context: Context, minutes: Int) {
+    val intent = Intent(context, FocusTimerService::class.java).apply {
+        putExtra("DURATION", minutes)
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        context.startForegroundService(intent)
+    } else {
+        context.startService(intent)
+    }
+}
+
+// --- Sub-Component: Permission Request ---
+@Composable
+fun PermissionRequestView(context: Context) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Permission Needed",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "To function as a strict focus timer, FaceDown needs permission to control 'Do Not Disturb' automatically.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            onClick = {
+                // Launch System Settings for DND Access
+                val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                context.startActivity(intent)
+            }
+        ) {
+            Text("Grant Access")
+        }
+    }
+}
+
+// --- Sub-Component: Sensor Status (Debug UI) ---
+@Composable
+fun SensorStatusView(state: OrientationState) {
+    // Dynamic background color based on state for immediate visual feedback
+    val backgroundColor = when (state) {
+        OrientationState.FACE_DOWN -> Color(0xFF4CAF50) // Green
+        OrientationState.FACE_UP -> Color(0xFFF44336)   // Red
+        OrientationState.UNKNOWN -> Color.Gray
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "CURRENT STATE",
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.White.copy(alpha = 0.8f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = state.name,
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Black
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = if (state == OrientationState.FACE_DOWN)
+                    "DND is ON" else "DND is OFF",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White
+            )
+        }
+    }
+}
