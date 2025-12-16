@@ -2,6 +2,7 @@ package com.arekb.facedown.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.arekb.facedown.data.dnd.DoNotDisturbManager
 import com.arekb.facedown.data.sensor.AccelerometerRepository
 import com.arekb.facedown.data.timer.TimerRepository
 import com.arekb.facedown.domain.model.OrientationState
@@ -14,6 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val accelerometerRepository: AccelerometerRepository,
+    private val dndManager: DoNotDisturbManager
 ) : ViewModel() {
 
     // Expose state to UI
@@ -33,5 +35,9 @@ class HomeViewModel @Inject constructor(
 
     fun resetTimer() {
         TimerRepository.reset()
+    }
+
+    fun hasDndPermission(): Boolean {
+        return dndManager.hasPermission()
     }
 }

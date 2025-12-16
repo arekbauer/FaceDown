@@ -2,6 +2,8 @@ package com.arekb.facedown.data.timer
 
 import android.app.Service
 import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.arekb.facedown.R
@@ -9,12 +11,21 @@ import com.arekb.facedown.data.dnd.DoNotDisturbManager
 import com.arekb.facedown.data.sensor.AccelerometerRepository
 import com.arekb.facedown.data.timer.ServiceConstants.GRACE_LIMIT
 import com.arekb.facedown.data.timer.ServiceConstants.STARTING_COUNTDOWN
+import com.arekb.facedown.domain.audio.AudioPlayer
 import com.arekb.facedown.domain.model.OrientationState
 import com.arekb.facedown.domain.model.TimerState
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.flow.isActive
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 object ServiceConstants {
@@ -27,6 +38,7 @@ class FocusTimerService : Service() {
 
     @Inject lateinit var sensorRepository: AccelerometerRepository
     @Inject lateinit var dndManager: DoNotDisturbManager
+    @Inject lateinit var audioPlayer: AudioPlayer
 
     // Service Lifecycle Scope
     private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -44,7 +56,6 @@ class FocusTimerService : Service() {
 
     private fun startSession(minutes: Int) {
         val durationMillis = minutes * 60 * 1000L
-        val sessionEndTime = System.currentTimeMillis() + durationMillis + (STARTING_COUNTDOWN * 1000)
 
         dndManager.turnOnDnd()
 
@@ -58,6 +69,7 @@ class FocusTimerService : Service() {
             }
 
             // 2. The Active Session
+            val sessionEndTime = System.currentTimeMillis() + durationMillis
 
             // State variable to track when the user MUST put the phone back down
             var gracePeriodDeadline: Long? = null
@@ -81,7 +93,7 @@ class FocusTimerService : Service() {
 
                 // 1. CHECK FOR COMPLETION
                 if (timeRemainingMillis <= 0) {
-                    completeSession()
+                    triggerAlarmSequence()
                     cancel() // Stop the coroutine
                     return@collect
                 }
@@ -130,15 +142,47 @@ class FocusTimerService : Service() {
         }
     }
 
-    private fun failSession() {
+    private fun triggerAlarmSequence() {
+        TimerRepository.updateState(TimerState.Completed)
+
+        try {
+            // OPTION A: The System Default Alarm (Production Ready)
+            val alarmUri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) // Fallback
+
+            audioPlayer.playAscendingAlarm(alarmUri)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // C. The "Stop" Monitor
+        // We launch a NEW coroutine to watch for the "Stop" gesture (Pick Up)
+        serviceScope.launch {
+            sensorRepository.orientationFlow
+                .collect { orientation ->
+                    // The "Physical Button" Logic:
+                    if (orientation == OrientationState.FACE_UP) {
+                        finishAndCleanup()
+                        cancel() // Stop monitoring sensor
+                    }
+                }
+        }
+    }
+
+    private fun finishAndCleanup() {
+        // 1. Cut the Sound
+        audioPlayer.stop()
+
+        // 2. Restore System Settings
         dndManager.turnOffDnd()
-        TimerRepository.updateState(TimerState.Failed)
+
+        // 3. Kill Service
         stopSelf()
     }
 
-    private fun completeSession() {
+    private fun failSession() {
         dndManager.turnOffDnd()
-        TimerRepository.updateState(TimerState.Completed)
+        TimerRepository.updateState(TimerState.Failed)
         stopSelf()
     }
 
@@ -152,6 +196,7 @@ class FocusTimerService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        audioPlayer.stop()
         dndManager.turnOffDnd() // Safety net: Always turn off DND if service dies
         serviceScope.cancel()
     }

@@ -9,25 +9,42 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Phone
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.domain.model.OrientationState
 import com.arekb.facedown.domain.model.TimerState
@@ -41,6 +58,8 @@ fun HomeScreen(
 
     // State to track permission status
     var hasNotificationPermission by remember { mutableStateOf(false) }
+
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
     // Lifecycle Observer: Re-check permission whenever the app Resumes
     // (User comes back from Settings screen)
@@ -58,19 +77,54 @@ fun HomeScreen(
     }
 
     // Debug orientation
-//    if (hasNotificationPermission) {
-//        // Permission Granted: Show the Sensor Debug UI
-//        val orientationState by viewModel.orientationState.collectAsState()
-//        SensorStatusView(state = orientationState)
-//    } else {
-//        // Permission Denied: Show the Request UI
-//        PermissionRequestView(context = context)
-//    }
+    if (hasNotificationPermission) {
+        // Permission Granted: Show the Sensor Debug UI
+        val orientationState by viewModel.orientationState.collectAsState()
+        SensorStatusView(state = orientationState)
+    } else {
+        // Permission Denied: Show the Request UI
+        PermissionRequestView(context = context)
+    }
+
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Permission Required") },
+            text = {
+                Text("To automatically silence notifications while you focus, FaceDown needs 'Do Not Disturb' access.\n\nPlease grant this permission on the next screen.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showPermissionDialog = false
+                        // Launch System Settings
+                        val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text("Open Settings")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     val timerState by viewModel.timerState.collectAsState()
 
     TimerSessionView(
         state = timerState,
+        onStartClicked = { minutes ->
+            // THE GATEKEEPER LOGIC
+            if (viewModel.hasDndPermission()) {
+                startTimerService(context, minutes)
+            } else {
+                showPermissionDialog = true
+            }
+        },
         onReset = { viewModel.resetTimer() }
     )
 }
@@ -78,6 +132,7 @@ fun HomeScreen(
 @Composable
 fun TimerSessionView(
     state: TimerState,
+    onStartClicked: (Int) -> Unit,
     onReset: () -> Unit
 ) {
     val context = LocalContext.current
@@ -116,7 +171,7 @@ fun TimerSessionView(
                     )
                     Spacer(modifier = Modifier.height(32.dp))
                     Button(
-                        onClick = { startTimerService(context, minutes = 1) },
+                        onClick = { onStartClicked(1) },
                         modifier = Modifier.height(56.dp)
                     ) {
                         Text("Start 1 Min Focus Test")
