@@ -1,10 +1,14 @@
 package com.arekb.facedown.ui.home
 
+import android.Manifest
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -51,9 +55,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.data.timer.ServiceConstants
 import com.arekb.facedown.domain.model.OrientationState
@@ -64,58 +70,86 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    // State to track permission status
-    var hasNotificationPermission by remember { mutableStateOf(false) }
-    var showPermissionDialog by remember { mutableStateOf(false) }
+    // --- 1. STATE TRACKING ---
+    var isDndGranted by remember { mutableStateOf(false) }
+    var isNotificationGranted by remember { mutableStateOf(false) }
+    var showDndDialog by remember { mutableStateOf(false) }
 
-    // Lifecycle Observer: Re-check permission whenever the app Resumes
-    // (User comes back from Settings screen)
+    // Helper to refresh permission state
+    fun checkPermissions() {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        isDndGranted = notificationManager.isNotificationPolicyAccessGranted
+
+        isNotificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true // Permission implicitly granted on older Android versions
+        }
+    }
+
+    // --- 2. THE PERMISSION LAUNCHERS ---
+
+    // Launcher for Notification Permission (Android 13+)
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            isNotificationGranted = isGranted
+            // Optional: If granted, you could auto-trigger the next check,
+            // but letting the user tap "Start" again is safer/simpler UX.
+        }
+    )
+
+    // Lifecycle Observer: Re-check permissions when app resumes (returning from Settings)
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                hasNotificationPermission = notificationManager.isNotificationPolicyAccessGranted
+                checkPermissions()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Debug orientation
-    if (hasNotificationPermission) {
-        // Permission Granted: Show the Sensor Debug UI
-        val timerState by viewModel.timerState.collectAsState()
+    // --- 3. THE UI ---
 
-        TimerSessionView(
-            state = timerState,
-            onStartClicked = { minutes ->
-                // GATEKEEPER CHECK (Double safety)
-                if (hasNotificationPermission) {
-                    sendTimerCommand(context, ServiceConstants.ACTION_START, minutes)
-                } else {
-                    showPermissionDialog = true
-                }
-            },
-            onReset = {
-                sendTimerCommand(context, ServiceConstants.ACTION_RESET)
-            },
-            onSaveClicked = { minutes, tag, note ->
-                viewModel.saveSession(minutes, tag, note)
+    val timerState by viewModel.timerState.collectAsState()
+
+    // Note: We removed the "if (permission) { ... } else { Block }" check.
+    // The UI is always visible now. Permissions are checked only on interaction.
+    TimerSessionView(
+        state = timerState,
+        onStartClicked = { minutes ->
+            // --- THE GAUNTLET ---
+
+            // Check 1: Notifications (Android 13+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isNotificationGranted) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return@TimerSessionView // Stop here
             }
-        )
-    } else {
-        // Permission Denied: Show the Request UI
-        PermissionRequestView(context = context)
-    }
 
-    // Dialog Logic
-    if (showPermissionDialog) {
+            // Check 2: Do Not Disturb
+            if (!isDndGranted) {
+                showDndDialog = true
+                return@TimerSessionView // Stop here
+            }
+
+            // Check 3: All Good -> Start!
+            sendTimerCommand(context, ServiceConstants.ACTION_START, minutes)
+        },
+        onReset = {
+            sendTimerCommand(context, ServiceConstants.ACTION_RESET)
+        },
+        onSaveClicked = { minutes, tag, note ->
+            viewModel.saveSession(minutes, tag, note)
+        }
+    )
+
+    // --- 4. THE DND DIALOG ---
+    if (showDndDialog) {
         AlertDialog(
-            onDismissRequest = { showPermissionDialog = false },
+            onDismissRequest = { showDndDialog = false },
             title = { Text("Permission Required") },
             text = {
                 Text("To automatically silence notifications while you focus, FaceDown needs 'Do Not Disturb' access.\n\nPlease grant this permission on the next screen.")
@@ -123,8 +157,7 @@ fun HomeScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        showPermissionDialog = false
-                        // Launch System Settings
+                        showDndDialog = false
                         val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
                         context.startActivity(intent)
                     }
@@ -133,7 +166,7 @@ fun HomeScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) {
+                TextButton(onClick = { showDndDialog = false }) {
                     Text("Cancel")
                 }
             }

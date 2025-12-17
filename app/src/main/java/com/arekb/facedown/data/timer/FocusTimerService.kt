@@ -267,6 +267,9 @@ class FocusTimerService : Service() {
             .setContentTitle("FaceDown")
             .setContentText(content)
             .setSmallIcon(R.mipmap.ic_launcher)
+            .setOngoing(true)
+            .setAutoCancel(false)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
     }
 
