@@ -59,6 +59,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    implementation("androidx.compose.material3:material3:1.5.0-alpha10")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.57.2")
@@ -67,4 +68,8 @@ dependencies {
 
     // Icons 
     implementation("androidx.compose.material:material-icons-core")
+
+    // Room
+    implementation("androidx.room:room-runtime:2.8.4")
+    ksp("androidx.room:room-compiler:2.8.4")
 }

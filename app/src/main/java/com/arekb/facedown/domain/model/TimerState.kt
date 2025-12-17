@@ -6,7 +6,7 @@ sealed interface TimerState {
 
     // 2. Startup Mode (Phone is Face Up)
     data class Startup(
-        val countdownSeconds: Int // 5, 4, 3...
+        val countdownSeconds: Int
     ) : TimerState
 
     // 3. Standard Focus Mode (Phone is Face Down)
@@ -18,7 +18,7 @@ sealed interface TimerState {
 
     // 3. The "Panic" Mode (Phone is Face Up)
     data class GracePeriod(
-        val remainingGraceSeconds: Int, // e.g., 5, 4, 3...
+        val remainingGraceSeconds: Int,
         val originalRemainingSeconds: Long // Remember where we paused
     ) : TimerState
 
@@ -32,5 +32,7 @@ sealed interface TimerState {
     data object Failed : TimerState
 
     // Success (Time == 0) - Phase 3 will handle this
-    data object Completed : TimerState
+    data class Completed(
+        val totalDurationMinutes: Int
+    ) : TimerState
 }

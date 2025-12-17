@@ -12,8 +12,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,8 +28,12 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -94,9 +101,10 @@ fun HomeScreen(
                 }
             },
             onReset = {
-                // Stop service if running, then reset UI
-                sendTimerCommand(context, ServiceConstants.ACTION_STOP)
-                viewModel.resetTimer()
+                sendTimerCommand(context, ServiceConstants.ACTION_RESET)
+            },
+            onSaveClicked = { minutes, tag, note ->
+                viewModel.saveSession(minutes, tag, note)
             }
         )
     } else {
@@ -137,7 +145,8 @@ fun HomeScreen(
 fun TimerSessionView(
     state: TimerState,
     onStartClicked: (Int) -> Unit,
-    onReset: () -> Unit
+    onReset: () -> Unit,
+    onSaveClicked: (Int, String, String?) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -317,22 +326,101 @@ fun TimerSessionView(
                         onClick = onReset,
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White)
                     ) {
-                        Text("Try Again", color = Color.Red)
+                        Text("Return Home", color = Color.Red)
                     }
                 }
 
                 is TimerState.Completed -> {
-                    Text(
-                        text = "Session Complete!",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.White
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = onReset,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                    // 1. Form State (Temporary, lives only while on this screen)
+                    var noteText by remember { mutableStateOf("") }
+                    var selectedTag by remember { mutableStateOf("Zen") }
+                    val tags = listOf("Work", "Study", "Code", "Read", "Zen")
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 32.dp)
                     ) {
-                        Text("Done", color = Color.Blue)
+                        Text(
+                            text = "Session Complete!",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Well done.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // 2. The Note Input
+                        OutlinedTextField(
+                            value = noteText,
+                            onValueChange = { noteText = it },
+                            label = { Text("Add a note (optional)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Color.White.copy(alpha = 0.9f),
+                                unfocusedContainerColor = Color.White.copy(alpha = 0.9f),
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // 3. The Tag Cloud (FlowRow wraps items to next line)
+                        // Note: FlowRow is experimental in some versions, simple Row/Column works for MVP too
+                        @OptIn(ExperimentalLayoutApi::class)
+                        FlowRow(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            tags.forEach { tag ->
+                                val isSelected = (tag == selectedTag)
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { selectedTag = tag },
+                                    label = { Text(tag) },
+                                    modifier = Modifier.padding(4.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Color.White,
+                                        selectedLabelColor = Color(0xFF2196F3), // Match Blue Theme
+                                        containerColor = Color.White.copy(alpha = 0.2f),
+                                        labelColor = Color.White
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // 4. The Save Button
+                        Button(
+                            onClick = {
+                                val minutes = state.totalDurationMinutes
+                                onSaveClicked(minutes, selectedTag, noteText.ifBlank { null })
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                            modifier = Modifier.fillMaxWidth().height(56.dp)
+                        ) {
+                            Text(
+                                text = "Save Session",
+                                color = Color(0xFF2196F3),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Option to discard
+                        TextButton(onClick = onReset) {
+                            Text("Discard", color = Color.White.copy(alpha = 0.7f))
+                        }
                     }
                 }
             }
@@ -352,9 +440,8 @@ fun sendTimerCommand(context: Context, action: String, minutes: Int = 0) {
         this.action = action
         if (minutes > 0) putExtra("DURATION", minutes)
     }
-    // For Start, we must use startForegroundService (Android O+)
-    // For Pause/Resume commands while it's already running, startService is sufficient
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    // Only use startForegroundService for the actual START command
+    if (action == ServiceConstants.ACTION_START && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         context.startForegroundService(intent)
     } else {
         context.startService(intent)

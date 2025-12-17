@@ -3,28 +3,20 @@ package com.arekb.facedown.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arekb.facedown.data.dnd.DoNotDisturbManager
-import com.arekb.facedown.data.sensor.AccelerometerRepository
 import com.arekb.facedown.data.timer.TimerRepository
-import com.arekb.facedown.domain.model.OrientationState
 import com.arekb.facedown.domain.model.TimerState
+import com.arekb.facedown.domain.session.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val accelerometerRepository: AccelerometerRepository,
-    private val dndManager: DoNotDisturbManager
+    private val dndManager: DoNotDisturbManager,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
-
-    // Expose state to UI
-    val orientationState = accelerometerRepository.orientationFlow
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = OrientationState.UNKNOWN
-        )
 
     val timerState = TimerRepository.timerState
         .stateIn(
@@ -34,10 +26,18 @@ class HomeViewModel @Inject constructor(
         )
 
     fun resetTimer() {
-        TimerRepository.reset()
+
     }
 
     fun hasDndPermission(): Boolean {
         return dndManager.hasPermission()
+    }
+
+    fun saveSession(minutes: Int, tag: String, note: String?) {
+        viewModelScope.launch {
+            sessionRepository.logSession(minutes, tag, note)
+            // After saving, we reset the app to the start screen
+            resetTimer()
+        }
     }
 }

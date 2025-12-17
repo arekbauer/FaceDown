@@ -32,7 +32,7 @@ object ServiceConstants {
     const val ACTION_START = "ACTION_START"
     const val ACTION_PAUSE = "ACTION_PAUSE"
     const val ACTION_RESUME = "ACTION_RESUME"
-    const val ACTION_STOP = "ACTION_STOP"
+    const val ACTION_RESET = "ACTION_RESET" // Used for going back to home via failing or manually
 
     const val STARTING_COUNTDOWN = 5
     const val GRACE_LIMIT = 10
@@ -52,6 +52,11 @@ class FocusTimerService : Service() {
     private var storedDurationMillis: Long = 0L
     private var storedTotalDurationMillis: Long = 0L
 
+    override fun onCreate() {
+        super.onCreate()
+        createNotificationChannel()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.action
 
@@ -63,22 +68,18 @@ class FocusTimerService : Service() {
             ServiceConstants.ACTION_START -> {
                 val minutes = intent.getIntExtra("DURATION", 25)
                 storedTotalDurationMillis = minutes * 60 * 1000L
-                startTimerLoop(storedTotalDurationMillis, isResume = false)
+                startTimerLoop(storedTotalDurationMillis)
             }
-            ServiceConstants.ACTION_PAUSE -> {
-                pauseTimer()
-            }
-            ServiceConstants.ACTION_RESUME -> {
-                resumeTimer()
-            }
-            ServiceConstants.ACTION_STOP -> {
-                failSession() // Or cancel
-            }
-            else -> {
-                // If we aren't already running, stop so we don't hang in limbo
-                if (timerJob?.isActive != true) {
-                    stopSelf()
-                }
+            ServiceConstants.ACTION_PAUSE -> pauseTimer()
+
+            ServiceConstants.ACTION_RESUME -> resumeTimer()
+
+            ServiceConstants.ACTION_RESET -> {
+                timerJob?.cancel()
+                audioPlayer.stop()
+                dndManager.turnOffDnd()
+                TimerRepository.updateState(TimerState.Idle)
+                stopSelf()
             }
         }
         return START_NOT_STICKY
@@ -88,7 +89,7 @@ class FocusTimerService : Service() {
         // 1. Cancel the running loop
         timerJob?.cancel()
 
-        // 2. Turn OFF DND (Critical for taking calls!)
+        // 2. Turn OFF DND
         dndManager.turnOffDnd()
 
         // 3. Update UI to Paused State
@@ -109,10 +110,10 @@ class FocusTimerService : Service() {
 
     private fun resumeTimer() {
         // Resume with the time we had left
-        startTimerLoop(storedDurationMillis, isResume = true)
+        startTimerLoop(storedDurationMillis)
     }
 
-    private fun startTimerLoop(durationMillis: Long, isResume: Boolean) {
+    private fun startTimerLoop(durationMillis: Long) {
         dndManager.turnOnDnd()
 
         timerJob?.cancel()
@@ -199,7 +200,9 @@ class FocusTimerService : Service() {
     }
 
     private fun triggerAlarmSequence() {
-        TimerRepository.updateState(TimerState.Completed)
+        // Calculate minutes from storedTotalDurationMillis
+        val minutes = (storedTotalDurationMillis / 1000 / 60).toInt()
+        TimerRepository.updateState(TimerState.Completed(minutes))
 
         try {
             // OPTION A: The System Default Alarm (Production Ready)
@@ -240,6 +243,23 @@ class FocusTimerService : Service() {
         dndManager.turnOffDnd()
         TimerRepository.updateState(TimerState.Failed)
         stopSelf()
+    }
+
+    private fun createNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channelId = "focus_channel"
+            val channelName = "Focus Timer Status"
+            val channelDescription = "Shows the active timer status"
+
+            val importance = android.app.NotificationManager.IMPORTANCE_LOW
+
+            val channel = android.app.NotificationChannel(channelId, channelName, importance).apply {
+                description = channelDescription
+            }
+
+            val notificationManager = getSystemService(android.app.NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     private fun createNotification(content: String): android.app.Notification {

@@ -14,7 +14,6 @@ class DoNotDisturbManager @Inject constructor(
 
     fun turnOnDnd() {
         if (hasPermission()) {
-            // PRIORITY allows alarms to ring (Essential for our Timer!)
             notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
         }
     }
