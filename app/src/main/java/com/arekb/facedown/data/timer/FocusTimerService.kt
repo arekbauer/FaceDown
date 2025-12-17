@@ -8,6 +8,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.arekb.facedown.R
 import com.arekb.facedown.data.dnd.DoNotDisturbManager
+import com.arekb.facedown.data.notification.FocusNotificationManager
 import com.arekb.facedown.data.sensor.AccelerometerRepository
 import com.arekb.facedown.data.timer.ServiceConstants.GRACE_LIMIT
 import com.arekb.facedown.data.timer.ServiceConstants.STARTING_COUNTDOWN
@@ -44,6 +45,7 @@ class FocusTimerService : Service() {
     @Inject lateinit var sensorRepository: AccelerometerRepository
     @Inject lateinit var dndManager: DoNotDisturbManager
     @Inject lateinit var audioPlayer: AudioPlayer
+    @Inject lateinit var notificationManager: FocusNotificationManager
 
     // Service Lifecycle Scope
     private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -105,7 +107,7 @@ class FocusTimerService : Service() {
         )
 
         // 4. Update Notification
-        // notificationManager.notify(1, createNotification("Session Paused"))
+        updateForegroundNotification(TimerState.GracePeriod(GRACE_LIMIT, (remainingSeconds/1000)))
     }
 
     private fun resumeTimer() {
@@ -163,6 +165,7 @@ class FocusTimerService : Service() {
                     // A. Just entered Face Up? Set the deadline.
                     if (gracePeriodDeadline == null) {
                         gracePeriodDeadline = now + (GRACE_LIMIT * 1000)
+                        updateForegroundNotification(TimerState.GracePeriod(GRACE_LIMIT, (timeRemainingMillis/1000)))
                     }
 
                     // B. Check if Deadline passed (Failure)
@@ -192,6 +195,14 @@ class FocusTimerService : Service() {
                             remainingSeconds = secondsRemaining,
                             totalSeconds = storedTotalDurationMillis / 1000,
                             currentProgress = 1f - (secondsRemaining.toFloat() / (storedTotalDurationMillis / 1000).toFloat())
+                        )
+                    )
+
+                    updateForegroundNotification(
+                        TimerState.Running(
+                            remainingSeconds = timeRemainingMillis / 1000,
+                            totalSeconds = storedTotalDurationMillis / 1000,
+                            currentProgress = 1f - (timeRemainingMillis.toFloat() / storedTotalDurationMillis)
                         )
                     )
                 }
@@ -245,21 +256,30 @@ class FocusTimerService : Service() {
         stopSelf()
     }
 
+    private fun updateForegroundNotification(state: TimerState, remaining: Long = storedDurationMillis) {
+        val notification = notificationManager.buildNotification(
+            state = state,
+            totalDurationMillis = storedTotalDurationMillis,
+            remainingMillis = remaining,
+        )
+
+        // For ACTION_START, we use startForeground. For updates, we use notificationManager.notify
+        notificationManager.updateNotification(notification)
+    }
+
     private fun createNotificationChannel() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val channelId = "focus_channel"
-            val channelName = "Focus Timer Status"
-            val channelDescription = "Shows the active timer status"
+        val channelId = "focus_channel"
+        val channelName = "Focus Timer Status"
+        val channelDescription = "Shows the active timer status"
 
-            val importance = android.app.NotificationManager.IMPORTANCE_LOW
+        val importance = android.app.NotificationManager.IMPORTANCE_LOW
 
-            val channel = android.app.NotificationChannel(channelId, channelName, importance).apply {
-                description = channelDescription
-            }
-
-            val notificationManager = getSystemService(android.app.NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
+        val channel = android.app.NotificationChannel(channelId, channelName, importance).apply {
+            description = channelDescription
         }
+
+        val notificationManager = getSystemService(android.app.NotificationManager::class.java)
+        notificationManager.createNotificationChannel(channel)
     }
 
     private fun createNotification(content: String): android.app.Notification {
