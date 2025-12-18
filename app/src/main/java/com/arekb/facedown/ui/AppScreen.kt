@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,7 +55,10 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
 import com.arekb.facedown.ui.home.HomeScreen
+import com.arekb.facedown.ui.navigation.FaceDownAppState
+import com.arekb.facedown.ui.navigation.Screen
 import com.arekb.facedown.ui.navigation.mainScreens
+import com.arekb.facedown.ui.navigation.rememberFaceDownAppState
 
 // TODO: Import your actual feature screens here
 // import com.arekb.facedown.ui.stats.StatsScreen
@@ -130,7 +134,7 @@ fun AppScreen(
                                     // Crossfade Icon
                                     Crossfade(isSelected, label = "IconFade") { selected ->
                                         Icon(
-                                            imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                                            painter = painterResource(if (selected) item.selectedIcon else item.unselectedIcon),
                                             contentDescription = null
                                         )
                                     }

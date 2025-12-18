@@ -1,4 +1,4 @@
-package com.arekb.facedown.ui
+package com.arekb.facedown.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
