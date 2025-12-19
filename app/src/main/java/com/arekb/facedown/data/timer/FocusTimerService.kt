@@ -1,11 +1,13 @@
 package com.arekb.facedown.data.timer
 
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.arekb.facedown.MainActivity
 import com.arekb.facedown.R
 import com.arekb.facedown.data.dnd.DoNotDisturbManager
 import com.arekb.facedown.data.notification.FocusNotificationManager
@@ -283,13 +285,25 @@ class FocusTimerService : Service() {
     }
 
     private fun createNotification(content: String): android.app.Notification {
+        val launchIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            launchIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
         return NotificationCompat.Builder(this, "focus_channel")
             .setContentTitle("FaceDown")
             .setContentText(content)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(false)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
     }
 

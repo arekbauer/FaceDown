@@ -170,13 +170,13 @@ fun AppScreen(
                 entryProvider = entryProvider {
 
                     entry<Screen.Timer> {
-                        HomeScreen()
+                        HomeScreen(contentPadding = contentPadding)
                     }
 
                     entry<Screen.Stats> {
                         // TODO: Add your StatsScreen here
                         // StatsScreen(contentPadding = contentPadding)
-                        Box(Modifier.fillMaxSize()) { Text("Stats Screen", Modifier.align(Alignment.Center)) }
+                        TypographyShowcase(contentPadding = contentPadding)
                     }
 
                     entry<Screen.Settings.Main> {

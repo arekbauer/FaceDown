@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,12 +34,16 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -53,6 +59,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -65,9 +73,11 @@ import com.arekb.facedown.data.timer.ServiceConstants
 import com.arekb.facedown.domain.model.OrientationState
 import com.arekb.facedown.domain.model.TimerState
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    contentPadding: PaddingValues
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -112,39 +122,57 @@ fun HomeScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // --- 3. THE UI ---
-
     val timerState by viewModel.timerState.collectAsState()
 
-    // Note: We removed the "if (permission) { ... } else { Block }" check.
-    // The UI is always visible now. Permissions are checked only on interaction.
-    TimerSessionView(
-        state = timerState,
-        onStartClicked = { minutes ->
-            // --- THE GAUNTLET ---
-
-            // Check 1: Notifications (Android 13+)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isNotificationGranted) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                return@TimerSessionView // Stop here
-            }
-
-            // Check 2: Do Not Disturb
-            if (!isDndGranted) {
-                showDndDialog = true
-                return@TimerSessionView // Stop here
-            }
-
-            // Check 3: All Good -> Start!
-            sendTimerCommand(context, ServiceConstants.ACTION_START, minutes)
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Timer", maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.headlineMediumEmphasized) },
+            )
         },
-        onReset = {
-            sendTimerCommand(context, ServiceConstants.ACTION_RESET)
-        },
-        onSaveClicked = { minutes, tag, note ->
-            viewModel.saveSession(minutes, tag, note)
-        }
-    )
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = Color.Transparent, // Let the Timer background show through
+
+    ) { innerPadding ->
+
+        val combinedPadding = PaddingValues(
+            top = contentPadding.calculateTopPadding() + innerPadding.calculateTopPadding(),
+            bottom = contentPadding.calculateBottomPadding() + innerPadding.calculateBottomPadding(),
+            start = contentPadding.calculateLeftPadding(LayoutDirection.Ltr),
+            end = contentPadding.calculateRightPadding(LayoutDirection.Ltr)
+        )
+
+        TimerSessionView(
+            state = timerState,
+            layoutPadding = combinedPadding,
+            onStartClicked = { minutes ->
+                // --- THE GAUNTLET ---
+
+                // Check 1: Notifications (Android 13+)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isNotificationGranted) {
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    return@TimerSessionView // Stop here
+                }
+
+                // Check 2: Do Not Disturb
+                if (!isDndGranted) {
+                    showDndDialog = true
+                    return@TimerSessionView // Stop here
+                }
+
+                // Check 3: All Good -> Start!
+                sendTimerCommand(context, ServiceConstants.ACTION_START, minutes)
+            },
+            onReset = {
+                sendTimerCommand(context, ServiceConstants.ACTION_RESET)
+            },
+            onSaveClicked = { minutes, tag, note ->
+                viewModel.saveSession(minutes, tag, note)
+            }
+        )
+    }
 
     // --- 4. THE DND DIALOG ---
     if (showDndDialog) {
@@ -177,6 +205,7 @@ fun HomeScreen(
 @Composable
 fun TimerSessionView(
     state: TimerState,
+    layoutPadding: PaddingValues = PaddingValues(0.dp),
     onStartClicked: (Int) -> Unit,
     onReset: () -> Unit,
     onSaveClicked: (Int, String, String?) -> Unit
@@ -206,7 +235,10 @@ fun TimerSessionView(
             .background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(layoutPadding)
+        ){
 
             // --- STATE MACHINE UI ---
             when (state) {
