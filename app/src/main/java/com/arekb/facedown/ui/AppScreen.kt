@@ -102,7 +102,7 @@ fun AppScreen(
                 HorizontalFloatingToolbar(
                     expanded = true,
                     scrollBehavior = toolbarScrollBehavior,
-                    colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
+                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(),
                     modifier = Modifier
                         .padding(
                             // Add bottom padding to avoid navigation bar overlap
