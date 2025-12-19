@@ -74,6 +74,7 @@ import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.data.timer.ServiceConstants
 import com.arekb.facedown.domain.model.OrientationState
 import com.arekb.facedown.domain.model.TimerState
+import com.arekb.facedown.ui.home.components.DurationPicker
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -125,6 +126,7 @@ fun HomeScreen(
     }
 
     val timerState by viewModel.timerState.collectAsState()
+    val selectedDuration by viewModel.selectedDuration.collectAsState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -149,6 +151,8 @@ fun HomeScreen(
         TimerSessionView(
             state = timerState,
             layoutPadding = combinedPadding,
+            selectedDuration = selectedDuration,
+            onDurationChange = { viewModel.setDuration(it) },
             onStartClicked = { minutes ->
                 // --- THE GAUNTLET ---
 
@@ -208,6 +212,8 @@ fun HomeScreen(
 fun TimerSessionView(
     state: TimerState,
     layoutPadding: PaddingValues = PaddingValues(0.dp),
+    selectedDuration: Int = 15,
+    onDurationChange: (Int) -> Unit = {},
     onStartClicked: (Int) -> Unit,
     onReset: () -> Unit,
     onSaveClicked: (Int, String, String?) -> Unit
@@ -239,23 +245,30 @@ fun TimerSessionView(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(layoutPadding)
+            modifier = Modifier.fillMaxSize().padding(layoutPadding)
         ){
 
             // --- STATE MACHINE UI ---
             when (state) {
                 is TimerState.Idle -> {
-                    Text(
-                        text = "FaceDown",
-                        style = MaterialTheme.typography.displayMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                    DurationPicker(
+                        currentDuration = selectedDuration,
+                        onDurationChange = onDurationChange
                     )
-                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Spacer(modifier = Modifier.height(48.dp))
+
+                    // THE START BUTTON
                     Button(
-                        onClick = { onStartClicked(1) },
-                        modifier = Modifier.height(56.dp)
+                        onClick = { onStartClicked(selectedDuration) },
+                        modifier = Modifier
+                            .height(56.dp)
+                            .fillMaxWidth(0.7f)
                     ) {
-                        Text("Start 1 Min Focus Test")
+                        Text(
+                            text = "Start Focus",
+                            fontSize = 18.sp
+                        )
                     }
                 }
 
