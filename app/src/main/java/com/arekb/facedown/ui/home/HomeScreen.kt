@@ -263,7 +263,8 @@ fun TimerSessionView(
                         onClick = { onStartClicked(selectedDuration) },
                         modifier = Modifier
                             .height(56.dp)
-                            .fillMaxWidth(0.7f)
+                            .fillMaxWidth(0.7f),
+                        shape = MaterialTheme.shapes.extraLarge
                     ) {
                         Text(
                             text = "Start Focus",

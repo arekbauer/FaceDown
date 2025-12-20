@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -20,7 +18,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.WavyProgressIndicatorDefaults
@@ -31,14 +28,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -46,9 +42,6 @@ fun DurationPicker(
     currentDuration: Int,
     onDurationChange: (Int) -> Unit
 ) {
-    // Slider Logic (Range 5m to 60m)
-    val sliderPosition = remember(currentDuration) { currentDuration.toFloat() }
-
     // Normalize progress for the indicator (0.0 to 1.0) based on max 60m
     val progressFactor = (currentDuration / 60f).coerceIn(0f, 1f)
 
@@ -64,9 +57,8 @@ fun DurationPicker(
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .fillMaxWidth(0.65f)
+                .fillMaxWidth(0.75f)
                 .aspectRatio(1f)
-                .widthIn(max = 320.dp)
         ) {
             val thickStrokeWidth = with(LocalDensity.current) { 8.dp.toPx() }
             val thickStroke =
@@ -82,13 +74,11 @@ fun DurationPicker(
                 animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
             )
 
-
             // 1. The Wavy Indicator (The "Halo")
             CircularWavyProgressIndicator(
                 progress = { animatedProgress },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .size(52.dp),
+                    .fillMaxSize(),
                 wavelength = WavyProgressIndicatorDefaults.LinearDeterminateWavelength,
                 waveSpeed = WavyProgressIndicatorDefaults.LinearDeterminateWavelength / 2,
                 stroke = thickStroke,
@@ -102,8 +92,8 @@ fun DurationPicker(
                     text = "$currentDuration",
                     style = MaterialTheme.typography.displayLarge,
                     fontSize = 80.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    // TODO: Look into text auto sizing -> autoSize = TextAutoSize.StepBased(),
                 )
                 Text(
                     text = "minutes",
@@ -113,53 +103,69 @@ fun DurationPicker(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(64.dp))
 
-        // --- THE SLIDER ---
-        Slider(
-            value = sliderPosition,
-            onValueChange = { newValue ->
-                onDurationChange(newValue.roundToInt())
-            },
-            valueRange = 5f..60f,
-            steps = 0, // Continuous smooth sliding
-            modifier = Modifier.padding(horizontal = 24.dp)
+        PresetButtonGroup(
+            presets = listOf(5, 10, 15, 25),
+            currentDuration = currentDuration,
+            onDurationChange = onDurationChange,
         )
+        Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+        PresetButtonGroup(
+            presets = listOf(30, 45, 50, 60),
+            currentDuration = currentDuration,
+            onDurationChange = onDurationChange,
+        )
+    }
+}
 
-        val presets = listOf(15, 30, 45, 60)
-        val interactionSources = remember { presets.map { MutableInteractionSource() } }
-        ButtonGroup(
-            overflowIndicator = { menuState ->
-                ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
-            }
-        ) {
-            presets.forEachIndexed { index, mins ->
-                val interactionSource = interactionSources[index]
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun PresetButtonGroup(
+    presets: List<Int>,
+    currentDuration: Int,
+    onDurationChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // 1. Calculate height once based on screen size (or pass it in)
+    val config = LocalConfiguration.current
+    val responsiveHeight = (config.screenHeightDp.dp * 0.05f).coerceIn(56.dp, 88.dp)
 
-                customItem(
-                    {
-                        ToggleButton(
-                            checked = (currentDuration == mins),
-                            onCheckedChange = { onDurationChange(mins) },
-                            interactionSource = interactionSource,
-                            modifier = Modifier
-                                .weight(1f)
-                                .semantics { role = Role.RadioButton }
-                                .animateWidth(interactionSource = interactionSource),
-                            shapes =
-                                when (index) {
-                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                    presets.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                },
-                        ) {
-                            Text("${mins}m")
-                        }
+    // 2. Remember interaction sources for this specific list
+    val interactionSources = remember(presets) { presets.map { MutableInteractionSource() } }
+
+    ButtonGroup(
+        modifier = modifier,
+        overflowIndicator = { menuState ->
+            ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
+        }
+    ) {
+        presets.forEachIndexed { index, mins ->
+            val interactionSource = interactionSources[index]
+
+            customItem(
+                {
+                    ToggleButton(
+                        checked = (currentDuration == mins),
+                        onCheckedChange = { onDurationChange(mins) },
+                        interactionSource = interactionSource,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(responsiveHeight)
+                            .semantics { role = Role.RadioButton }
+                            .animateWidth(interactionSource = interactionSource),
+                        shapes = when (index) {
+                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                            presets.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                        },
+                    ) {
+                        Text("${mins}m")
                     }
-                ) { // State - can do
                 }
+            ) {
+                // State ->
             }
         }
     }
