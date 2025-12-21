@@ -37,6 +37,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -74,8 +75,9 @@ import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.data.timer.ServiceConstants
 import com.arekb.facedown.domain.model.OrientationState
 import com.arekb.facedown.domain.model.TimerState
-import com.arekb.facedown.ui.home.components.TimerProgress
 import com.arekb.facedown.ui.home.components.PresetButtonGroup
+import com.arekb.facedown.ui.home.components.TimerConditionsRow
+import com.arekb.facedown.ui.home.components.TimerProgress
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -270,8 +272,10 @@ fun TimerSessionView(
 
                     Spacer(modifier = Modifier.height(48.dp))
 
+                    TimerConditionsRow()
+
                     // THE START BUTTON
-                    Button(
+                    FilledTonalButton(
                         onClick = { onStartClicked(selectedDuration) },
                         modifier = Modifier
                             .height(56.dp)

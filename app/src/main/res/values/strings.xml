@@ -3,4 +3,5 @@
     <string name="toolbar_timer_label">Timer</string>
     <string name="toolbar_stats_label">Stats</string>
     <string name="toolbar_settings_label">Settings</string>
+    <string name="minutes">minutes</string>
 </resources>
