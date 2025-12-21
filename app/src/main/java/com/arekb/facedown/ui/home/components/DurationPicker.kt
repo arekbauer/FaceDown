@@ -62,31 +62,7 @@ fun TimerProgress(
             .widthIn(max = 300.dp)
             .aspectRatio(1f)
     ) {
-        val thickStrokeWidth = with(LocalDensity.current) { 8.dp.toPx() }
-        val thickStroke =
-            remember(thickStrokeWidth) {
-                Stroke(
-                    width = thickStrokeWidth,
-                    cap = StrokeCap.Round
-                )
-            }
-        val animatedProgress by
-        animateFloatAsState(
-            targetValue = progressFactor,
-            animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
-        )
-
-        // 1. The Timer
-        CircularWavyProgressIndicator(
-            progress = { animatedProgress },
-            modifier = Modifier
-                .fillMaxSize(),
-            wavelength = WavyProgressIndicatorDefaults.LinearDeterminateWavelength,
-            waveSpeed = WavyProgressIndicatorDefaults.LinearDeterminateWavelength / 2,
-            stroke = thickStroke,
-            trackStroke = thickStroke,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        CustomWavyIndicator(progressFactor)
 
         // 2. The Text
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -106,6 +82,36 @@ fun TimerProgress(
         }
         Spacer(modifier = Modifier.height(64.dp))
     }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun CustomWavyIndicator(progressFactor: Float) {
+    val thickStrokeWidth = with(LocalDensity.current) { 12.dp.toPx() }
+    val thickStroke =
+        remember(thickStrokeWidth) {
+            Stroke(
+                width = thickStrokeWidth,
+                cap = StrokeCap.Round
+            )
+        }
+    val animatedProgress by
+    animateFloatAsState(
+        targetValue = progressFactor,
+        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+    )
+
+    // 1. The Timer
+    CircularWavyProgressIndicator(
+        progress = { animatedProgress },
+        modifier = Modifier
+            .fillMaxSize(),
+        wavelength = WavyProgressIndicatorDefaults.LinearDeterminateWavelength,
+        waveSpeed = WavyProgressIndicatorDefaults.LinearDeterminateWavelength / 2,
+        stroke = thickStroke,
+        trackStroke = thickStroke,
+        color = MaterialTheme.colorScheme.primary,
+    )
 }
 
 @SuppressLint("ConfigurationScreenWidthHeight")
