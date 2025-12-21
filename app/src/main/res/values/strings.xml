@@ -4,4 +4,5 @@
     <string name="toolbar_stats_label">Stats</string>
     <string name="toolbar_settings_label">Settings</string>
     <string name="minutes">minutes</string>
+    <string name="ends_at">Ends at</string>
 </resources>

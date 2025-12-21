@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Phone
@@ -62,6 +63,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,9 +77,11 @@ import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.data.timer.ServiceConstants
 import com.arekb.facedown.domain.model.OrientationState
 import com.arekb.facedown.domain.model.TimerState
+import com.arekb.facedown.ui.home.components.EndsAtTime
 import com.arekb.facedown.ui.home.components.PresetButtonGroup
-import com.arekb.facedown.ui.home.components.TimerConditionsRow
 import com.arekb.facedown.ui.home.components.TimerProgress
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -145,10 +149,10 @@ fun HomeScreen(
     ) { innerPadding ->
 
         val combinedPadding = PaddingValues(
-            top = contentPadding.calculateTopPadding() + innerPadding.calculateTopPadding(),
+            top = contentPadding.calculateTopPadding() + innerPadding.calculateTopPadding() - 16.dp,
             bottom = contentPadding.calculateBottomPadding() + innerPadding.calculateBottomPadding(),
-            start = contentPadding.calculateLeftPadding(LayoutDirection.Ltr),
-            end = contentPadding.calculateRightPadding(LayoutDirection.Ltr)
+            start = contentPadding.calculateLeftPadding(LayoutDirection.Ltr) + 32.dp,
+            end = contentPadding.calculateRightPadding(LayoutDirection.Ltr) + 32.dp
         )
 
         TimerSessionView(
@@ -211,6 +215,7 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TimerSessionView(
     state: TimerState,
@@ -240,6 +245,12 @@ fun TimerSessionView(
         label = "BgColor"
     )
 
+    val formattedEndTime = remember(selectedDuration) {
+        val now = LocalTime.now()
+        val endTime = now.plusMinutes(selectedDuration.toLong())
+        endTime.format(DateTimeFormatter.ofPattern("h:mm a"))
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -248,20 +259,25 @@ fun TimerSessionView(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(layoutPadding).padding(horizontal = 16.dp)
+            modifier = Modifier.fillMaxSize().padding(layoutPadding)
         ){
             // --- STATE MACHINE UI ---
             when (state) {
                 is TimerState.Idle -> {
                     TimerProgress(selectedDuration)
 
-                    Spacer(modifier = Modifier.height(48.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    EndsAtTime(formattedEndTime)
+
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     PresetButtonGroup(
                         presets = listOf(5, 10, 15, 25),
                         currentDuration = selectedDuration,
                         onDurationChange = onDurationChange,
                     )
+
                     Spacer(modifier = Modifier.height(8.dp))
 
                     PresetButtonGroup(
@@ -270,17 +286,14 @@ fun TimerSessionView(
                         onDurationChange = onDurationChange,
                     )
 
-                    Spacer(modifier = Modifier.height(48.dp))
+                    Spacer(modifier = Modifier.height(52.dp))
 
-                    TimerConditionsRow()
-
-                    // THE START BUTTON
                     FilledTonalButton(
                         onClick = { onStartClicked(selectedDuration) },
                         modifier = Modifier
-                            .height(56.dp)
-                            .fillMaxWidth(0.7f),
-                        shape = MaterialTheme.shapes.extraLarge
+                            .height(80.dp)
+                            .widthIn(min = 224.dp, max = 300.dp),
+                        shape = MaterialTheme.shapes.extraLargeIncreased
                     ) {
                         Text(
                             text = "Start Focus",
@@ -371,6 +384,7 @@ fun TimerSessionView(
                         Text("Emergency Pause", color = Color.Black)
                     }
                 }
+
                 is TimerState.Paused -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
@@ -614,5 +628,21 @@ fun SensorStatusView(state: OrientationState) {
                 color = Color.White
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+@Preview
+fun ButtonTest() {
+    Button(
+        onClick = { },
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLargeIncreased
+    ) {
+        Text(
+            text = "Start Focus"
+        )
     }
 }

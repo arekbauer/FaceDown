@@ -1,6 +1,8 @@
 package com.arekb.facedown.ui.home.components
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,10 +13,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -72,7 +76,7 @@ fun TimerProgress(
             animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
         )
 
-        // 1. The Wavy Indicator
+        // 1. The Timer
         CircularWavyProgressIndicator(
             progress = { animatedProgress },
             modifier = Modifier
@@ -90,19 +94,21 @@ fun TimerProgress(
                 text = "$currentDuration",
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 92.sp,
+                fontSize = 96.sp,
                 maxLines = 1
             )
             Text(
                 text = stringResource(R.string.minutes),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.offset(y = -(8.dp))
             )
         }
         Spacer(modifier = Modifier.height(64.dp))
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PresetButtonGroup(
@@ -117,7 +123,8 @@ fun PresetButtonGroup(
     val interactionSources = remember(presets) { presets.map { MutableInteractionSource() } }
 
     ButtonGroup(
-        modifier = modifier,
+        modifier = modifier
+            .widthIn(max = 500.dp),
         overflowIndicator = { menuState ->
             ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
         }
@@ -149,6 +156,33 @@ fun PresetButtonGroup(
                 // State ->
             }
         }
+    }
+}
+
+@Composable
+fun EndsAtTime(endTime : String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                shape = CircleShape
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.icons_schedule_outline),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = stringResource(R.string.ends_at) + " " + endTime,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
