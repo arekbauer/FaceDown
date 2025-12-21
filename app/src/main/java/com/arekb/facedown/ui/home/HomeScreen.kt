@@ -74,7 +74,8 @@ import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.data.timer.ServiceConstants
 import com.arekb.facedown.domain.model.OrientationState
 import com.arekb.facedown.domain.model.TimerState
-import com.arekb.facedown.ui.home.components.DurationPicker
+import com.arekb.facedown.ui.home.components.TimerProgress
+import com.arekb.facedown.ui.home.components.PresetButtonGroup
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -245,15 +246,26 @@ fun TimerSessionView(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(layoutPadding)
+            modifier = Modifier.fillMaxSize().padding(layoutPadding).padding(horizontal = 16.dp)
         ){
-
             // --- STATE MACHINE UI ---
             when (state) {
                 is TimerState.Idle -> {
-                    DurationPicker(
+                    TimerProgress(selectedDuration)
+
+                    Spacer(modifier = Modifier.height(48.dp))
+
+                    PresetButtonGroup(
+                        presets = listOf(5, 10, 15, 25),
                         currentDuration = selectedDuration,
-                        onDurationChange = onDurationChange
+                        onDurationChange = onDurationChange,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    PresetButtonGroup(
+                        presets = listOf(30, 45, 50, 60),
+                        currentDuration = selectedDuration,
+                        onDurationChange = onDurationChange,
                     )
 
                     Spacer(modifier = Modifier.height(48.dp))
@@ -274,37 +286,35 @@ fun TimerSessionView(
                 }
 
                 is TimerState.Startup -> {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Get Ready",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = Color.Black
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = "Get Ready",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                        // A visual instruction
-                        Icon(
-                            imageVector = Icons.Rounded.Phone,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = Color.Black.copy(alpha = 0.6f)
-                        )
+                    // A visual instruction
+                    Icon(
+                        imageVector = Icons.Rounded.Phone,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = Color.Black.copy(alpha = 0.6f)
+                    )
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                        Text(
-                            text = "Place phone face down in:",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.Black.copy(alpha = 0.8f)
-                        )
+                    Text(
+                        text = "Place phone face down in:",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Black.copy(alpha = 0.8f)
+                    )
 
-                        Text(
-                            text = state.countdownSeconds.toString(),
-                            style = MaterialTheme.typography.displayLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                    Text(
+                        text = state.countdownSeconds.toString(),
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
 
                 is TimerState.Running -> {
