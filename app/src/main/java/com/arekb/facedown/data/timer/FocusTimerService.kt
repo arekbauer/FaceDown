@@ -124,7 +124,7 @@ class FocusTimerService : Service() {
         timerJob = serviceScope.launch {
 
             // 1. The Countdown
-            for (i in STARTING_COUNTDOWN downTo 1) {
+            for (i in STARTING_COUNTDOWN downTo 0) {
                 TimerRepository.updateState(TimerState.Startup(i))
                 delay(1000)
             }

@@ -1,7 +1,16 @@
 package com.arekb.facedown.ui.home.components
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.InfiniteTransition
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +20,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -19,6 +27,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -35,6 +45,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
@@ -52,9 +64,11 @@ import com.arekb.facedown.R
 @Composable
 fun TimerProgress(
     currentDuration: Int,
+    totalRange: Float = 60f,
+    minutes: Boolean = true
 ) {
     // Normalize progress for the indicator (0.0 to 1.0) based on max 60m
-    val progressFactor = (currentDuration / 60f).coerceIn(0f, 1f)
+    val progressFactor = (currentDuration / totalRange).coerceIn(0f, 1f)
 
     Box(
         contentAlignment = Alignment.Center,
@@ -74,7 +88,7 @@ fun TimerProgress(
                 maxLines = 1
             )
             Text(
-                text = stringResource(R.string.minutes),
+                text = if (minutes) stringResource(R.string.minutes) else stringResource(R.string.seconds),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.offset(y = -(8.dp))
@@ -166,11 +180,15 @@ fun PresetButtonGroup(
 }
 
 @Composable
-fun EndsAtTime(endTime : String) {
+fun InfoPill(
+    icon: Int,
+    string : String,
+    modifier: Modifier = Modifier
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
-        modifier = Modifier
+        modifier = modifier
             .background(
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 shape = CircleShape
@@ -178,14 +196,14 @@ fun EndsAtTime(endTime : String) {
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Icon(
-            painter = painterResource(R.drawable.icons_schedule_outline),
+            painter = painterResource(icon),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(16.dp)
         )
         Spacer(modifier = Modifier.width(6.dp))
         Text(
-            text = stringResource(R.string.ends_at) + " " + endTime,
+            text = string,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -193,41 +211,71 @@ fun EndsAtTime(endTime : String) {
 }
 
 @Composable
-fun TimerConditionsRow() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 24.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+fun SimpleFlowingArrows(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onSurfaceVariant // Subtle Gray
+) {
+    Box(
+        modifier = modifier.height(60.dp), // Fixed height container
+        contentAlignment = Alignment.TopCenter
     ) {
-        // Condition 1: Do Not Disturb
-        ConditionItem(
-            icon = R.drawable.icon_dnd_filled,
-            text = "Auto Priority Mode"
-        )
+        val transition = rememberInfiniteTransition(label = "Flow")
+
+        // We create 3 arrows, staggered by time to create the "wave"
+        // Delay 0ms, 400ms, 800ms
+        SingleFlowingArrow(transition, delayMillis = 0, color = color)
+        SingleFlowingArrow(transition, delayMillis = 660, color = color)
+        SingleFlowingArrow(transition, delayMillis = 1320, color = color)
     }
 }
 
 @Composable
-fun ConditionItem(
-    icon: Int,
-    text: String
+fun SingleFlowingArrow(
+    transition: InfiniteTransition,
+    delayMillis: Int,
+    color: Color
 ) {
-    val contentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+    // 1. Movement: Slide DOWN from -15dp to +15dp
+    val offsetY by transition.animateFloat(
+        initialValue = -15f,
+        targetValue = 15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 2000,
+                easing = LinearEasing // Constant speed for smooth flow
+            ),
+            repeatMode = RepeatMode.Restart,
+            initialStartOffset = StartOffset(delayMillis)
+        ),
+        label = "OffsetY"
+    )
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            tint = contentColor,
-            modifier = Modifier.size(16.dp)
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = contentColor
-        )
-    }
+    // 2. Opacity: Fade In (Top) -> Full (Middle) -> Fade Out (Bottom)
+    // This hides the "teleporting" when the loop resets
+    val alpha by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 2000
+                0f at 0 // Start invisible
+                1f at 1000 // Full visible in middle
+                0f at 2000 // End invisible
+            },
+            repeatMode = RepeatMode.Restart,
+            initialStartOffset = StartOffset(delayMillis)
+        ),
+        label = "Alpha"
+    )
+
+    Icon(
+        imageVector = Icons.Rounded.KeyboardArrowDown,
+        contentDescription = null,
+        tint = color,
+        modifier = Modifier
+            .offset(y = offsetY.dp)
+            .alpha(alpha)
+            .size(32.dp) // Standard, non-flashy size
+    )
 }
+

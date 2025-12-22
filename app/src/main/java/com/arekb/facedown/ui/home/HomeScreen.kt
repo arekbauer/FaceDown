@@ -9,9 +9,6 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,13 +21,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -46,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -73,13 +71,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arekb.facedown.R
-import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.data.timer.ServiceConstants
-import com.arekb.facedown.domain.model.OrientationState
+import com.arekb.facedown.data.timer.ServiceConstants.STARTING_COUNTDOWN
 import com.arekb.facedown.domain.model.TimerState
-import com.arekb.facedown.ui.home.components.EndsAtTime
+import com.arekb.facedown.ui.formatTime
+import com.arekb.facedown.ui.home.components.InfoPill
 import com.arekb.facedown.ui.home.components.PresetButtonGroup
+import com.arekb.facedown.ui.home.components.SimpleFlowingArrows
 import com.arekb.facedown.ui.home.components.TimerProgress
+import com.arekb.facedown.ui.sendTimerCommand
+import com.arekb.facedown.ui.theme.FaceDownTheme
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -228,23 +229,6 @@ fun TimerSessionView(
 ) {
     val context = LocalContext.current
 
-    // Smooth color transitions based on state
-    val targetColor = when (state) {
-        is TimerState.Idle -> MaterialTheme.colorScheme.surface
-        is TimerState.Startup -> MaterialTheme.colorScheme.secondary
-        is TimerState.Running -> Color(0xFF4CAF50) // Calm Green
-        is TimerState.GracePeriod -> Color(0xFFFF9800) // Panic Orange
-        is TimerState.Paused -> Color(0xFF81C784) // Resume Green
-        is TimerState.Failed -> Color(0xFFF44336) // Failure Red
-        is TimerState.Completed -> Color(0xFF2196F3) // Success Blue
-    }
-
-    val backgroundColor by animateColorAsState(
-        targetValue = targetColor,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "BgColor"
-    )
-
     val formattedEndTime = remember(selectedDuration) {
         val now = LocalTime.now()
         val endTime = now.plusMinutes(selectedDuration.toLong())
@@ -253,8 +237,7 @@ fun TimerSessionView(
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -268,7 +251,10 @@ fun TimerSessionView(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    EndsAtTime(formattedEndTime)
+                    InfoPill(
+                        icon = R.drawable.icons_schedule_outline,
+                        string = stringResource(R.string.ends_at) + " " + formattedEndTime
+                    )
 
                     Spacer(modifier = Modifier.height(32.dp))
 
@@ -303,35 +289,38 @@ fun TimerSessionView(
                 }
 
                 is TimerState.Startup -> {
-                    Text(
-                        text = "Get Ready",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.Black
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
 
-                    // A visual instruction
-                    Icon(
-                        imageVector = Icons.Rounded.Phone,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = Color.Black.copy(alpha = 0.6f)
-                    )
+                    TimerProgress(state.countdownSeconds, STARTING_COUNTDOWN.toFloat(), false)
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Text(
-                        text = "Place phone face down in:",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Black.copy(alpha = 0.8f)
+                    InfoPill(
+                        icon = R.drawable.icons_schedule_outline,
+                        string = "$selectedDuration min session"
                     )
 
+                    Spacer(modifier = Modifier.height(32.dp))
+
                     Text(
-                        text = state.countdownSeconds.toString(),
-                        style = MaterialTheme.typography.displayLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Place screen down",
+                        style = MaterialTheme.typography.titleLarge,
                     )
+
+                    Spacer(modifier = Modifier.height(120.dp))
+
+                    SimpleFlowingArrows(
+                        modifier = Modifier.fillMaxWidth() // Centers it automatically
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    TextButton(onClick = onReset,
+                        modifier = Modifier
+                        .navigationBarsPadding()
+                        .padding(bottom = 48.dp))
+                    {
+                        Text("Cancel")
+                    }
                 }
 
                 is TimerState.Running -> {
@@ -537,112 +526,95 @@ fun TimerSessionView(
     }
 }
 
-// Helper: Format Seconds to MM:SS
-fun formatTime(seconds: Long): String {
-    val m = seconds / 60
-    val s = seconds % 60
-    return "%02d:%02d".format(m, s)
-}
-
-fun sendTimerCommand(context: Context, action: String, minutes: Int = 0) {
-    val intent = Intent(context, FocusTimerService::class.java).apply {
-        this.action = action
-        if (minutes > 0) putExtra("DURATION", minutes)
-    }
-    // Only use startForegroundService for the actual START command
-    if (action == ServiceConstants.ACTION_START && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        context.startForegroundService(intent)
-    } else {
-        context.startService(intent)
-    }
-}
-
-// --- Sub-Component: Permission Request ---
 @Composable
-fun PermissionRequestView(context: Context) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Permission Needed",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "To function as a strict focus timer, FaceDown needs permission to control 'Do Not Disturb' automatically.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            onClick = {
-                // Launch System Settings for DND Access
-                val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-                context.startActivity(intent)
-            }
-        ) {
-            Text("Grant Access")
+fun TimerPreviewWrapper(content: @Composable () -> Unit) {
+    FaceDownTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            content()
         }
     }
 }
 
-// --- Sub-Component: Sensor Status (Debug UI) ---
+// 1. IDLE STATE (The Setup Screen)
+@Preview(name = "1. Idle State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
-fun SensorStatusView(state: OrientationState) {
-    // Dynamic background color based on state for immediate visual feedback
-    val backgroundColor = when (state) {
-        OrientationState.FACE_DOWN -> Color(0xFF4CAF50) // Green
-        OrientationState.FACE_UP -> Color(0xFFF44336)   // Red
-        OrientationState.UNKNOWN -> Color.Gray
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "CURRENT STATE",
-                style = MaterialTheme.typography.labelLarge,
-                color = Color.White.copy(alpha = 0.8f)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = state.name,
-                style = MaterialTheme.typography.displayLarge,
-                color = Color.White,
-                fontWeight = FontWeight.Black
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = if (state == OrientationState.FACE_DOWN)
-                    "DND is ON" else "DND is OFF",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White
-            )
-        }
+fun PreviewTimerSession_Idle() {
+    TimerPreviewWrapper {
+        TimerSessionView(
+            state = TimerState.Idle,
+            selectedDuration = 25,
+            layoutPadding = PaddingValues(16.dp),
+            onDurationChange = {},
+            onStartClicked = {},
+            onReset = {},
+            onSaveClicked = { _, _, _ -> }
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+// 2. STARTUP STATE (The Countdown/Flip Instruction)
+@Preview(name = "2. Startup State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
-@Preview
-fun ButtonTest() {
-    Button(
-        onClick = { },
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLargeIncreased
-    ) {
-        Text(
-            text = "Start Focus"
+fun PreviewTimerSession_Startup() {
+    TimerPreviewWrapper {
+        TimerSessionView(
+            // Assuming Startup takes a countdown integer
+            state = TimerState.Startup(countdownSeconds = 3),
+            selectedDuration = 25,
+            onDurationChange = {},
+            onStartClicked = {},
+            onReset = {},
+            onSaveClicked = { _, _, _ -> }
+        )
+    }
+}
+
+// 3. RUNNING STATE (Focus Mode)
+//@Preview(name = "3. Running State", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun PreviewTimerSession_Running() {
+    TimerPreviewWrapper {
+        TimerSessionView(
+            // Assuming Running takes remaining seconds (e.g., 14m 30s left)
+            state = TimerState.Running(remainingSeconds = 870, totalSeconds = 900, currentProgress = 0.7f),
+            selectedDuration = 25,
+            onDurationChange = {},
+            onStartClicked = {},
+            onReset = {},
+            onSaveClicked = { _, _, _ -> }
+        )
+    }
+}
+
+// 4. COMPLETED STATE (Summary & Tagging)
+//@Preview(name = "4. Completed State", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun PreviewTimerSession_Completed() {
+    TimerPreviewWrapper {
+        TimerSessionView(
+            // Assuming Completed takes the total duration focused
+            state = TimerState.Completed(totalDurationMinutes = 25),
+            selectedDuration = 25,
+            onDurationChange = {},
+            onStartClicked = {},
+            onReset = {},
+            onSaveClicked = { _, _, _ -> }
+        )
+    }
+}
+
+// 5. GRACE PERIOD (Warning State)
+//@Preview(name = "5. Grace Period", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun PreviewTimerSession_GracePeriod() {
+    TimerPreviewWrapper {
+        TimerSessionView(
+            state = TimerState.GracePeriod(remainingGraceSeconds = 4, originalRemainingSeconds = 870),
+            selectedDuration = 25,
+            onDurationChange = {},
+            onStartClicked = {},
+            onReset = {},
+            onSaveClicked = { _, _, _ -> }
         )
     }
 }

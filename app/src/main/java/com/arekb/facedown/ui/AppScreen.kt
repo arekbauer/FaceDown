@@ -7,6 +7,8 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -41,6 +43,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,10 +54,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
+import com.arekb.facedown.domain.model.TimerState
 import com.arekb.facedown.ui.home.HomeScreen
+import com.arekb.facedown.ui.home.HomeViewModel
 import com.arekb.facedown.ui.navigation.FaceDownAppState
 import com.arekb.facedown.ui.navigation.Screen
 import com.arekb.facedown.ui.navigation.mainScreens
@@ -68,13 +74,20 @@ import com.arekb.facedown.ui.navigation.rememberFaceDownAppState
 @Composable
 fun AppScreen(
     modifier: Modifier = Modifier,
-    appState: FaceDownAppState = rememberFaceDownAppState()
+    appState: FaceDownAppState = rememberFaceDownAppState(),
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     // 1. Setup Window & Layout Helpers
     val layoutDirection = LocalLayoutDirection.current
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     val systemBarsInsets = WindowInsets.systemBars.asPaddingValues()
     val cutoutInsets = WindowInsets.displayCutout.asPaddingValues()
+
+    val timerState = homeViewModel.timerState.collectAsState().value
+    val showBottomBar = when (timerState) {
+        is TimerState.Idle -> true
+        else -> false
+    }
 
     // 3. Toolbar Behavior
     val toolbarScrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
@@ -88,69 +101,80 @@ fun AppScreen(
             val isWideScreen = remember {
                 windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
             }
-
-            // Container for the Floating Toolbar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = cutoutInsets.calculateStartPadding(layoutDirection),
-                        end = cutoutInsets.calculateEndPadding(layoutDirection)
-                    ),
-                contentAlignment = Alignment.Center
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = slideInVertically { height -> height } + fadeIn(),
+                exit = slideOutVertically { height -> height } + fadeOut()
             ) {
-                HorizontalFloatingToolbar(
-                    expanded = true,
-                    scrollBehavior = toolbarScrollBehavior,
-                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(),
+                // Container for the Floating Toolbar
+                Box(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .padding(
-                            // Add bottom padding to avoid navigation bar overlap
-                            bottom = systemBarsInsets.calculateBottomPadding() + ScreenOffset,
-                            top = ScreenOffset
-                        )
-                        .zIndex(1f) // Ensure it floats above content
+                            start = cutoutInsets.calculateStartPadding(layoutDirection),
+                            end = cutoutInsets.calculateEndPadding(layoutDirection)
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // 4. Iterate through your navigation items
-                    mainScreens.fastForEach { item ->
-                        // Check if this item is the "Active" screen
-                        val isSelected = appState.isSelected(item.route)
+                    HorizontalFloatingToolbar(
+                        expanded = true,
+                        scrollBehavior = toolbarScrollBehavior,
+                        colors = FloatingToolbarDefaults.standardFloatingToolbarColors(),
+                        modifier = Modifier
+                            .padding(
+                                // Add bottom padding to avoid navigation bar overlap
+                                bottom = systemBarsInsets.calculateBottomPadding() + ScreenOffset,
+                                top = ScreenOffset
+                            )
+                            .zIndex(1f) // Ensure it floats above content
+                    ) {
+                        // 4. Iterate through your navigation items
+                        mainScreens.fastForEach { item ->
+                            // Check if this item is the "Active" screen
+                            val isSelected = appState.isSelected(item.route)
 
-                        TooltipBox(
-                            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-                            tooltip = { PlainTooltip { Text(stringResource(item.label)) } },
-                            state = rememberTooltipState(),
-                        ) {
-                            ToggleButton(
-                                checked = isSelected,
-                                onCheckedChange = {
-                                    appState.navigateToTopLevelDestination(item.route)
-                                },
-                                colors = ToggleButtonDefaults.toggleButtonColors(),
-                                shapes = ToggleButtonDefaults.shapes(CircleShape, CircleShape, CircleShape),
-                                modifier = Modifier.height(56.dp)
+                            TooltipBox(
+                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                    TooltipAnchorPosition.Above
+                                ),
+                                tooltip = { PlainTooltip { Text(stringResource(item.label)) } },
+                                state = rememberTooltipState(),
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    // Crossfade Icon
-                                    Crossfade(isSelected, label = "IconFade") { selected ->
-                                        Icon(
-                                            painter = painterResource(if (selected) item.selectedIcon else item.unselectedIcon),
-                                            contentDescription = null
-                                        )
-                                    }
-                                    // Expand Text Label (only when selected or on wide screens)
-                                    AnimatedVisibility(
-                                        visible = isSelected || isWideScreen,
-                                        enter = expandHorizontally(),
-                                        exit = shrinkHorizontally()
-                                    ) {
-                                        Text(
-                                            text = stringResource(item.label),
-                                            style = MaterialTheme.typography.labelLarge,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Clip,
-                                            modifier = Modifier.padding(start = ButtonDefaults.IconSpacing)
-                                        )
+                                ToggleButton(
+                                    checked = isSelected,
+                                    onCheckedChange = {
+                                        appState.navigateToTopLevelDestination(item.route)
+                                    },
+                                    colors = ToggleButtonDefaults.toggleButtonColors(),
+                                    shapes = ToggleButtonDefaults.shapes(
+                                        CircleShape,
+                                        CircleShape,
+                                        CircleShape
+                                    ),
+                                    modifier = Modifier.height(56.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        // Crossfade Icon
+                                        Crossfade(isSelected, label = "IconFade") { selected ->
+                                            Icon(
+                                                painter = painterResource(if (selected) item.selectedIcon else item.unselectedIcon),
+                                                contentDescription = null
+                                            )
+                                        }
+                                        // Expand Text Label (only when selected or on wide screens)
+                                        AnimatedVisibility(
+                                            visible = isSelected || isWideScreen,
+                                            enter = expandHorizontally(),
+                                            exit = shrinkHorizontally()
+                                        ) {
+                                            Text(
+                                                text = stringResource(item.label),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Clip,
+                                                modifier = Modifier.padding(start = ButtonDefaults.IconSpacing)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -182,7 +206,12 @@ fun AppScreen(
                     entry<Screen.Settings.Main> {
                         // TODO: Add your SettingsScreen here
                         // SettingsScreen(contentPadding = contentPadding)
-                        Box(Modifier.fillMaxSize()) { Text("Settings Screen", Modifier.align(Alignment.Center)) }
+                        Box(Modifier.fillMaxSize()) {
+                            Text(
+                                "Settings Screen",
+                                Modifier.align(Alignment.Center)
+                            )
+                        }
                     }
                 }
             )
