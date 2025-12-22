@@ -1,6 +1,7 @@
 package com.arekb.facedown.ui.home.components
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.InfiniteTransition
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -32,11 +33,9 @@ import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.WavyProgressIndicatorDefaults
@@ -52,43 +51,44 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arekb.facedown.R
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun TimerProgress(
-    currentDuration: Int,
-    totalRange: Float = 60f,
-    minutes: Boolean = true
+fun TimerDisplay(
+    progress: Float,
+    mainText: String,
+    secondaryText: String,
+    progressAnimationSpec: AnimationSpec<Float>,
+    mainTextSize: TextUnit = 96.sp
 ) {
-    // Normalize progress for the indicator (0.0 to 1.0) based on max 60m
-    val progressFactor = (currentDuration / totalRange).coerceIn(0f, 1f)
-
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .widthIn(max = 300.dp)
             .aspectRatio(1f)
     ) {
-        CustomWavyIndicator(progressFactor)
+        CustomWavyIndicator(
+            progressFactor = progress,
+            animationSpec = progressAnimationSpec
+        )
 
-        // 2. The Text
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "$currentDuration",
+                text = mainText,
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 96.sp,
+                fontSize = mainTextSize,
                 maxLines = 1
             )
             Text(
-                text = if (minutes) stringResource(R.string.minutes) else stringResource(R.string.seconds),
+                text = secondaryText,
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.offset(y = -(8.dp))
@@ -100,7 +100,7 @@ fun TimerProgress(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun CustomWavyIndicator(progressFactor: Float) {
+fun CustomWavyIndicator(progressFactor: Float, animationSpec: AnimationSpec<Float>) {
     val thickStrokeWidth = with(LocalDensity.current) { 12.dp.toPx() }
     val thickStroke =
         remember(thickStrokeWidth) {
@@ -109,10 +109,11 @@ fun CustomWavyIndicator(progressFactor: Float) {
                 cap = StrokeCap.Round
             )
         }
-    val animatedProgress by
-    animateFloatAsState(
+
+    val animatedProgress by animateFloatAsState(
         targetValue = progressFactor,
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+        animationSpec = animationSpec,
+        label = "WaveProgress"
     )
 
     // 1. The Timer

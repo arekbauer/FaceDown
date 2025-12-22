@@ -10,6 +10,8 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -81,7 +84,7 @@ import com.arekb.facedown.ui.formatTime
 import com.arekb.facedown.ui.home.components.InfoPill
 import com.arekb.facedown.ui.home.components.PresetButtonGroup
 import com.arekb.facedown.ui.home.components.SimpleFlowingArrows
-import com.arekb.facedown.ui.home.components.TimerProgress
+import com.arekb.facedown.ui.home.components.TimerDisplay
 import com.arekb.facedown.ui.sendTimerCommand
 import com.arekb.facedown.ui.theme.FaceDownTheme
 import java.time.LocalTime
@@ -259,7 +262,13 @@ fun TimerSessionView(
             // --- STATE MACHINE UI ---
             when (state) {
                 is TimerState.Idle -> {
-                    TimerProgress(selectedDuration)
+                    val progress = (selectedDuration / 60f).coerceIn(0f, 1f)
+                    TimerDisplay(
+                        progress = progress,
+                        mainText = "$selectedDuration",
+                        secondaryText = stringResource(R.string.minutes),
+                        progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+                    )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -301,8 +310,13 @@ fun TimerSessionView(
                 }
 
                 is TimerState.Startup -> {
-
-                    TimerProgress(state.countdownSeconds, STARTING_COUNTDOWN.toFloat(), false)
+                    val progress = (state.countdownSeconds / STARTING_COUNTDOWN.toFloat()).coerceIn(0f, 1f)
+                    TimerDisplay(
+                        progress = progress,
+                        mainText = "${state.countdownSeconds}",
+                        secondaryText = stringResource(R.string.seconds),
+                        progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+                    )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -336,18 +350,39 @@ fun TimerSessionView(
                 }
 
                 is TimerState.Running -> {
-                    Text(
-                        text = formatTime(state.remainingSeconds),
-                        style = MaterialTheme.typography.displayLarge,
-                        fontSize = 80.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                    val progress = (state.remainingSeconds / (selectedDuration * 60).toFloat()).coerceIn(0f, 1f)
+
+                    TimerDisplay(
+                        progress = progress,
+                        mainText = formatTime(state.remainingSeconds),
+                        secondaryText = stringResource(R.string.remaining),
+                        mainTextSize = 72.sp,
+                        progressAnimationSpec = tween(durationMillis = 1000, easing = LinearEasing)
                     )
-                    Text(
-                        text = "Focusing...",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White.copy(alpha = 0.8f)
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    InfoPill(
+                        icon = R.drawable.icon_pause_outline,
+                        string = stringResource(R.string.lift_to_pause)
                     )
+
+                    Spacer(modifier = Modifier.height(64.dp))
+
+                    Text(
+                        text = "Timer in progress",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    TextButton(onClick = onReset,
+                        modifier = Modifier
+                            .navigationBarsPadding()
+                            .padding(bottom = 48.dp))
+                    {
+                        Text("Stop session")
+                    }
                 }
 
                 is TimerState.GracePeriod -> {
@@ -565,7 +600,7 @@ fun PreviewTimerSession_Idle() {
 }
 
 // 2. STARTUP STATE (The Countdown/Flip Instruction)
-@Preview(name = "2. Startup State", showBackground = true, device = "spec:width=411dp,height=891dp")
+//@Preview(name = "2. Startup State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun PreviewTimerSession_Startup() {
     TimerPreviewWrapper {
@@ -582,7 +617,7 @@ fun PreviewTimerSession_Startup() {
 }
 
 // 3. RUNNING STATE (Focus Mode)
-//@Preview(name = "3. Running State", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(name = "3. Running State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun PreviewTimerSession_Running() {
     TimerPreviewWrapper {
