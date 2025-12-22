@@ -1,6 +1,7 @@
 package com.arekb.facedown.ui.home
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -58,11 +61,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -92,6 +95,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val layoutDirection = LocalLayoutDirection.current
 
     // --- 1. STATE TRACKING ---
     var isDndGranted by remember { mutableStateOf(false) }
@@ -149,16 +153,23 @@ fun HomeScreen(
 
     ) { innerPadding ->
 
-        val combinedPadding = PaddingValues(
-            top = contentPadding.calculateTopPadding() + innerPadding.calculateTopPadding() - 16.dp,
-            bottom = contentPadding.calculateBottomPadding() + innerPadding.calculateBottomPadding(),
-            start = contentPadding.calculateLeftPadding(LayoutDirection.Ltr) + 32.dp,
-            end = contentPadding.calculateRightPadding(LayoutDirection.Ltr) + 32.dp
-        )
+        val effectivePadding = remember(timerState, contentPadding) {
+            val bottomPadding = if (timerState is TimerState.Idle) {
+                contentPadding.calculateBottomPadding() + innerPadding.calculateBottomPadding()
+            } else {
+                0.dp
+            }
+            PaddingValues(
+                top = contentPadding.calculateTopPadding() + innerPadding.calculateTopPadding() - 16.dp,
+                start = contentPadding.calculateStartPadding(layoutDirection) + 32.dp,
+                end = contentPadding.calculateEndPadding(layoutDirection) + 32.dp,
+                bottom = bottomPadding
+            )
+        }
 
         TimerSessionView(
             state = timerState,
-            layoutPadding = combinedPadding,
+            layoutPadding = effectivePadding,
             selectedDuration = selectedDuration,
             onDurationChange = { viewModel.setDuration(it) },
             onStartClicked = { minutes ->
@@ -216,6 +227,7 @@ fun HomeScreen(
     }
 }
 
+@SuppressLint("RememberReturnType")
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TimerSessionView(
@@ -299,17 +311,17 @@ fun TimerSessionView(
                         string = "$selectedDuration min session"
                     )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(64.dp))
 
                     Text(
                         text = "Place screen down",
                         style = MaterialTheme.typography.titleLarge,
                     )
 
-                    Spacer(modifier = Modifier.height(120.dp))
+                    Spacer(modifier = Modifier.height(48.dp))
 
                     SimpleFlowingArrows(
-                        modifier = Modifier.fillMaxWidth() // Centers it automatically
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -536,7 +548,7 @@ fun TimerPreviewWrapper(content: @Composable () -> Unit) {
 }
 
 // 1. IDLE STATE (The Setup Screen)
-@Preview(name = "1. Idle State", showBackground = true, device = "spec:width=411dp,height=891dp")
+//@Preview(name = "1. Idle State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun PreviewTimerSession_Idle() {
     TimerPreviewWrapper {
