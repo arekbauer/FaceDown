@@ -20,8 +20,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,7 +37,9 @@ import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
@@ -66,7 +71,8 @@ fun TimerDisplay(
     mainText: String,
     secondaryText: String,
     progressAnimationSpec: AnimationSpec<Float>,
-    mainTextSize: TextUnit = 96.sp
+    mainTextSize: TextUnit = 96.sp,
+    colour: Color = MaterialTheme.colorScheme.primary
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -76,7 +82,8 @@ fun TimerDisplay(
     ) {
         CustomWavyIndicator(
             progressFactor = progress,
-            animationSpec = progressAnimationSpec
+            animationSpec = progressAnimationSpec,
+            colour = colour
         )
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -100,7 +107,7 @@ fun TimerDisplay(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun CustomWavyIndicator(progressFactor: Float, animationSpec: AnimationSpec<Float>) {
+fun CustomWavyIndicator(progressFactor: Float, animationSpec: AnimationSpec<Float>, colour: Color) {
     val thickStrokeWidth = with(LocalDensity.current) { 12.dp.toPx() }
     val thickStroke =
         remember(thickStrokeWidth) {
@@ -125,7 +132,7 @@ fun CustomWavyIndicator(progressFactor: Float, animationSpec: AnimationSpec<Floa
         waveSpeed = WavyProgressIndicatorDefaults.LinearDeterminateWavelength / 2,
         stroke = thickStroke,
         trackStroke = thickStroke,
-        color = MaterialTheme.colorScheme.primary,
+        color = colour,
     )
 }
 
@@ -280,3 +287,84 @@ fun SingleFlowingArrow(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun TimerControlBar(
+    isPaused: Boolean,
+    onPauseResume: () -> Unit,
+    onStop: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val config = LocalConfiguration.current
+    val responsiveHeight = (config.screenHeightDp.dp * 0.10f).coerceIn(56.dp, 88.dp)
+    val interactionSources = remember { listOf(MutableInteractionSource(), MutableInteractionSource()) }
+
+    // We use a high-contrast container for the controls
+    ButtonGroup(
+        modifier = modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 32.dp),
+        overflowIndicator = {}
+    ) {
+
+        customItem(
+            {
+                FilledIconToggleButton(
+                    checked = isPaused,
+                    onCheckedChange  = { onPauseResume() },
+                    interactionSource = interactionSources[0],
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(responsiveHeight)
+                        .fillMaxHeight()
+                        .animateWidth(interactionSource = interactionSources[0]),
+                    colors = IconButtonDefaults.filledIconToggleButtonColors(
+                        // Active (Paused) Color
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        // Inactive (Running) Color
+                        checkedContainerColor = MaterialTheme.colorScheme.tertiary,
+                        checkedContentColor = MaterialTheme.colorScheme.onTertiary
+                    ),
+                    shapes = IconButtonDefaults.toggleableShapes(),
+                ) {
+                    Icon(
+                        painter = if (isPaused) painterResource(com.arekb.facedown.R.drawable.icon_play_filled)
+                                    else painterResource(com.arekb.facedown.R.drawable.icon_pause_filled),
+                        contentDescription = if (isPaused) "Resume" else "Pause"
+                    )
+                }
+            }
+        ) {
+            // state
+        }
+
+        customItem(
+            {
+                FilledIconToggleButton(
+                    checked = false,
+                    onCheckedChange  = { onStop() },
+                    interactionSource = interactionSources[1],
+                    modifier = Modifier
+                        .weight(0.3f)
+                        .height(responsiveHeight)
+                        .fillMaxHeight()
+                        .animateWidth(interactionSource = interactionSources[1]),
+                    colors = IconButtonDefaults.filledIconToggleButtonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Icon(
+                        painter = painterResource(com.arekb.facedown.R.drawable.icon_stop_filled),
+                        contentDescription = "Stop Session"
+                    )
+                }
+            }
+        )
+        {
+            // state
+        }
+    }
+}

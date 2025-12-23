@@ -4,20 +4,14 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-12-22T01:46:44.006851700Z">
+        <DropdownSelection timestamp="2025-12-23T15:40:50.160163800Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=58271FDCQ007TC" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\user\.android\avd\Pixel_9_Pro_XL.avd" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
-      </SelectionState>
-      <SelectionState runConfigName="testing">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
-      <SelectionState runConfigName="PreviewSnappySlider">
-        <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="PreviewPresetGrid">
         <option name="selectionMode" value="DROPDOWN" />
@@ -34,6 +28,12 @@
         <DialogSelection />
       </SelectionState>
       <SelectionState runConfigName="PreviewSonarStartup">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="5. Grace Period - PreviewTimerSession_GracePeriod">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="ToggleButtonGroupDemo">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

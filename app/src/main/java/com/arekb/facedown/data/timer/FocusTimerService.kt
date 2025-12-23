@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 object ServiceConstants {
@@ -36,6 +37,8 @@ object ServiceConstants {
     const val ACTION_PAUSE = "ACTION_PAUSE"
     const val ACTION_RESUME = "ACTION_RESUME"
     const val ACTION_RESET = "ACTION_RESET" // Used for going back to home via failing or manually
+    const val ACTION_CANCEL_STOP = "ACTION_CANCEL_STOP" // Used to go back after clicking "no" on stop confirmation dialog
+    const val ACTION_TEMP_FREEZE = "ACTION_TEMP_FREEZE" // Temporarily pauses the timer without updating states to "freeze" in time
 
     const val STARTING_COUNTDOWN = 5
     const val GRACE_LIMIT = 10
@@ -85,6 +88,9 @@ class FocusTimerService : Service() {
                 TimerRepository.updateState(TimerState.Idle)
                 stopSelf()
             }
+            ServiceConstants.ACTION_CANCEL_STOP -> resumeTimer(skipCountDown = true)
+
+            ServiceConstants.ACTION_TEMP_FREEZE -> tempPause()
         }
         return START_NOT_STICKY
     }
@@ -112,21 +118,27 @@ class FocusTimerService : Service() {
         updateForegroundNotification(TimerState.GracePeriod(GRACE_LIMIT, (remainingSeconds/1000)))
     }
 
-    private fun resumeTimer() {
-        // Resume with the time we had left
-        startTimerLoop(storedDurationMillis)
+    private fun tempPause() {
+        timerJob?.cancel()
     }
 
-    private fun startTimerLoop(durationMillis: Long) {
+    private fun resumeTimer(skipCountDown: Boolean = false) {
+        // Resume with the time we had left
+        startTimerLoop(storedDurationMillis, skipCountDown)
+    }
+
+    private fun startTimerLoop(durationMillis: Long, skipCountDown: Boolean = false) {
         dndManager.turnOnDnd()
 
         timerJob?.cancel()
         timerJob = serviceScope.launch {
 
-            // 1. The Countdown
-            for (i in STARTING_COUNTDOWN downTo 0) {
-                TimerRepository.updateState(TimerState.Startup(i))
-                delay(1000)
+            // 1. The grace-period Countdown
+            if(!skipCountDown) {
+                for (i in STARTING_COUNTDOWN downTo 0) {
+                    TimerRepository.updateState(TimerState.Startup(i))
+                    delay(1000)
+                }
             }
 
             // 2. The Active Session
@@ -209,6 +221,16 @@ class FocusTimerService : Service() {
                     )
                 }
             }
+        }
+    }
+
+    // TODO: Implement this at a later date
+    private fun calculateMaxPauses(durationMillis: Long): Int {
+        val durationMinutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis)
+        return when {
+            durationMinutes < 20 -> 1
+            durationMinutes < 40 -> 2
+            else -> 3
         }
     }
 

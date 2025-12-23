@@ -12,7 +12,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,14 +25,8 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,7 +36,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -61,7 +53,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -78,12 +69,14 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arekb.facedown.R
 import com.arekb.facedown.data.timer.ServiceConstants
+import com.arekb.facedown.data.timer.ServiceConstants.GRACE_LIMIT
 import com.arekb.facedown.data.timer.ServiceConstants.STARTING_COUNTDOWN
 import com.arekb.facedown.domain.model.TimerState
 import com.arekb.facedown.ui.formatTime
 import com.arekb.facedown.ui.home.components.InfoPill
 import com.arekb.facedown.ui.home.components.PresetButtonGroup
 import com.arekb.facedown.ui.home.components.SimpleFlowingArrows
+import com.arekb.facedown.ui.home.components.TimerControlBar
 import com.arekb.facedown.ui.home.components.TimerDisplay
 import com.arekb.facedown.ui.sendTimerCommand
 import com.arekb.facedown.ui.theme.FaceDownTheme
@@ -163,7 +156,7 @@ fun HomeScreen(
                 0.dp
             }
             PaddingValues(
-                top = contentPadding.calculateTopPadding() + innerPadding.calculateTopPadding() - 16.dp,
+                top = contentPadding.calculateTopPadding() + innerPadding.calculateTopPadding(),
                 start = contentPadding.calculateStartPadding(layoutDirection) + 32.dp,
                 end = contentPadding.calculateEndPadding(layoutDirection) + 32.dp,
                 bottom = bottomPadding
@@ -250,6 +243,36 @@ fun TimerSessionView(
         endTime.format(DateTimeFormatter.ofPattern("h:mm a"))
     }
 
+    var showStopDialog by remember { mutableStateOf(false) }
+    val onDialogDismiss = { showStopDialog = false
+        if (state is TimerState.GracePeriod) sendTimerCommand(context, ServiceConstants.ACTION_CANCEL_STOP)
+    }
+
+    if (showStopDialog) {
+        AlertDialog(
+            onDismissRequest = { showStopDialog = false },
+            title = { Text("End session?") },
+            text = { Text("You will lose your current focus progress.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showStopDialog = false
+                        sendTimerCommand(context, ServiceConstants.ACTION_RESET)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("End Session")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDialogDismiss
+                ) {
+                    Text("No")
+                }
+            }
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -257,7 +280,9 @@ fun TimerSessionView(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(layoutPadding)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(layoutPadding)
         ){
             // --- STATE MACHINE UI ---
             when (state) {
@@ -337,16 +362,6 @@ fun TimerSessionView(
                     SimpleFlowingArrows(
                         modifier = Modifier.fillMaxWidth()
                     )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    TextButton(onClick = onReset,
-                        modifier = Modifier
-                        .navigationBarsPadding()
-                        .padding(bottom = 48.dp))
-                    {
-                        Text("Cancel")
-                    }
                 }
 
                 is TimerState.Running -> {
@@ -363,7 +378,7 @@ fun TimerSessionView(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     InfoPill(
-                        icon = R.drawable.icon_pause_outline,
+                        icon = R.drawable.icon_pause_filled,
                         string = stringResource(R.string.lift_to_pause)
                     )
 
@@ -374,97 +389,92 @@ fun TimerSessionView(
                         style = MaterialTheme.typography.titleLarge,
                     )
 
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    TextButton(onClick = onReset,
-                        modifier = Modifier
-                            .navigationBarsPadding()
-                            .padding(bottom = 48.dp))
-                    {
-                        Text("Stop session")
-                    }
+//                    Spacer(modifier = Modifier.weight(1f))
+//
+//                    OutlinedButton(
+//                        onClick = onReset,
+//                        colors = ButtonDefaults.outlinedButtonColors(
+//                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+//                            containerColor = MaterialTheme.colorScheme.errorContainer
+//                        ),
+//                        modifier = Modifier
+//                            .navigationBarsPadding()
+//                            .padding(bottom = 48.dp)
+//                    ) {
+//                        Text("Stop session")
+//                    }
                 }
 
                 is TimerState.GracePeriod -> {
-                    Text(
-                        text = "PUT IT DOWN!",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Black
+                    val progress = (state.remainingGraceSeconds / GRACE_LIMIT.toFloat()).coerceIn(0f, 1f)
+                    TimerDisplay(
+                        progress = progress,
+                        mainText = "${state.remainingGraceSeconds}",
+                        secondaryText = "fail in",
+                        progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+                        colour = MaterialTheme.colorScheme.error
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // Big Red Warning Circle
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .background(Color.Red),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = state.remainingGraceSeconds.toString(),
-                            style = MaterialTheme.typography.displayMedium,
-                            color = Color.White
-                        )
-                    }
-                    // Add Pause Button
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Button(
-                        onClick = {
-                            sendTimerCommand(context, ServiceConstants.ACTION_PAUSE)
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-                    ) {
-                        Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.Black)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Emergency Pause", color = Color.Black)
-                    }
+
+                    Spacer(modifier = Modifier.height(120.dp))
+
+                    Text(
+                        text = "Keep focusing!",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Text(
+                        text = "Flip phone to resume",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(48.dp))
+
+                    SimpleFlowingArrows(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.error
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+                    TimerControlBar(
+                        isPaused = false ,
+                        onPauseResume = { sendTimerCommand(context, ServiceConstants.ACTION_PAUSE) },
+                        onStop = { showStopDialog = true
+                            sendTimerCommand(context, ServiceConstants.ACTION_TEMP_FREEZE)
+                        }
+                    )
                 }
 
                 is TimerState.Paused -> {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Session Paused",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = Color.Black
-                        )
-                        Text(
-                            text = "DND is OFF. You can take calls.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
+                    Text(
+                        text = "Session Paused",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "DND is OFF. You can take calls.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                        Text(
-                            text = formatTime(state.remainingSeconds),
-                            style = MaterialTheme.typography.displayLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    Text(
+                        text = formatTime(state.remainingSeconds),
+                        style = MaterialTheme.typography.displayLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
 
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        Button(
-                            onClick = {
-                                sendTimerCommand(context, ServiceConstants.ACTION_RESUME)
-                            }
-                        ) {
-                            Text("Resume Session")
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        TextButton(onClick = onReset) {
-                            Text("Abandon Session")
-                        }
-                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    TimerControlBar(
+                        isPaused = true ,
+                        onPauseResume = { sendTimerCommand(context, ServiceConstants.ACTION_RESUME) },
+                        onStop = { showStopDialog = true }
+                    )
                 }
 
                 is TimerState.Failed -> {
                     Text(
                         text = "Session Broken",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.White
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
@@ -550,7 +560,9 @@ fun TimerSessionView(
                                 onSaveClicked(minutes, selectedTag, noteText.ifBlank { null })
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                            modifier = Modifier.fillMaxWidth().height(56.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
                         ) {
                             Text(
                                 text = "Save Session",
@@ -617,7 +629,7 @@ fun PreviewTimerSession_Startup() {
 }
 
 // 3. RUNNING STATE (Focus Mode)
-@Preview(name = "3. Running State", showBackground = true, device = "spec:width=411dp,height=891dp")
+//@Preview(name = "3. Running State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun PreviewTimerSession_Running() {
     TimerPreviewWrapper {
@@ -651,12 +663,28 @@ fun PreviewTimerSession_Completed() {
 }
 
 // 5. GRACE PERIOD (Warning State)
-//@Preview(name = "5. Grace Period", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(name = "5. Grace Period", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun PreviewTimerSession_GracePeriod() {
     TimerPreviewWrapper {
         TimerSessionView(
             state = TimerState.GracePeriod(remainingGraceSeconds = 4, originalRemainingSeconds = 870),
+            selectedDuration = 25,
+            onDurationChange = {},
+            onStartClicked = {},
+            onReset = {},
+            onSaveClicked = { _, _, _ -> }
+        )
+    }
+}
+
+// 5. PAUSE STATE
+@Preview(name = "6. Paused Period", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun PreviewTimerSession_Paused() {
+    TimerPreviewWrapper {
+        TimerSessionView(
+            state = TimerState.Paused(remainingSeconds = 870, totalSeconds = 900, currentProgress = 0.7f),
             selectedDuration = 25,
             onDurationChange = {},
             onStartClicked = {},
