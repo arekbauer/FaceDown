@@ -251,8 +251,8 @@ fun TimerSessionView(
     if (showStopDialog) {
         AlertDialog(
             onDismissRequest = { showStopDialog = false },
-            title = { Text("End session?") },
-            text = { Text("You will lose your current focus progress.") },
+            title = { Text(stringResource(R.string.end_session_title)) },
+            text = { Text(stringResource(R.string.end_session_text)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -261,13 +261,13 @@ fun TimerSessionView(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("End Session")
+                    Text(stringResource(R.string.end_session_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDialogDismiss
                 ) {
-                    Text("No")
+                    Text(stringResource(R.string.end_session_cancel))
                 }
             }
         )
@@ -328,7 +328,7 @@ fun TimerSessionView(
                         shape = MaterialTheme.shapes.extraLargeIncreased
                     ) {
                         Text(
-                            text = "Start Focus",
+                            text = stringResource(R.string.start_focus),
                             fontSize = 18.sp
                         )
                     }
@@ -347,13 +347,13 @@ fun TimerSessionView(
 
                     InfoPill(
                         icon = R.drawable.icons_schedule_outline,
-                        string = "$selectedDuration min session"
+                        string = selectedDuration.toString() + " " + stringResource(R.string.min_session)
                     )
 
                     Spacer(modifier = Modifier.height(64.dp))
 
                     Text(
-                        text = "Place screen down",
+                        text = stringResource(R.string.start_focus),
                         style = MaterialTheme.typography.titleLarge,
                     )
 
@@ -385,7 +385,7 @@ fun TimerSessionView(
                     Spacer(modifier = Modifier.height(64.dp))
 
                     Text(
-                        text = "Timer in progress",
+                        text = stringResource(R.string.timer_in_progress),
                         style = MaterialTheme.typography.titleLarge,
                     )
 
@@ -410,7 +410,7 @@ fun TimerSessionView(
                     TimerDisplay(
                         progress = progress,
                         mainText = "${state.remainingGraceSeconds}",
-                        secondaryText = "fail in",
+                        secondaryText = stringResource(R.string.fail_in),
                         progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
                         colour = MaterialTheme.colorScheme.error
                     )
@@ -418,11 +418,11 @@ fun TimerSessionView(
                     Spacer(modifier = Modifier.height(120.dp))
 
                     Text(
-                        text = "Keep focusing!",
+                        text = stringResource(R.string.keep_focusing),
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Text(
-                        text = "Flip phone to resume",
+                        text = stringResource(R.string.flip_phone_resume),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -444,23 +444,33 @@ fun TimerSessionView(
                 }
 
                 is TimerState.Paused -> {
-                    Text(
-                        text = "Session Paused",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.Black
-                    )
-                    Text(
-                        text = "DND is OFF. You can take calls.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                    val progress = (state.remainingSeconds / (selectedDuration * 60).toFloat()).coerceIn(0f, 1f)
+                    TimerDisplay(
+                        progress = progress,
+                        mainText = formatTime(state.remainingSeconds),
+                        secondaryText = stringResource(R.string.remaining),
+                        progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+                        mainTextSize = 72.sp,
+                        colour = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    InfoPill(
+                        icon = R.drawable.icon_dnd_off_filled,
+                        string = stringResource(R.string.dnd_off)
+                    )
+
+                    Spacer(modifier = Modifier.height(64.dp))
 
                     Text(
-                        text = formatTime(state.remainingSeconds),
-                        style = MaterialTheme.typography.displayLarge,
-                        color = MaterialTheme.colorScheme.primary
+                        text = stringResource(R.string.session_paused),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Text(
+                        text = stringResource(R.string.continue_ready),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -595,7 +605,7 @@ fun TimerPreviewWrapper(content: @Composable () -> Unit) {
 }
 
 // 1. IDLE STATE (The Setup Screen)
-//@Preview(name = "1. Idle State", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(name = "1. Idle State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun PreviewTimerSession_Idle() {
     TimerPreviewWrapper {
@@ -612,7 +622,7 @@ fun PreviewTimerSession_Idle() {
 }
 
 // 2. STARTUP STATE (The Countdown/Flip Instruction)
-//@Preview(name = "2. Startup State", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(name = "2. Startup State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun PreviewTimerSession_Startup() {
     TimerPreviewWrapper {
@@ -629,7 +639,7 @@ fun PreviewTimerSession_Startup() {
 }
 
 // 3. RUNNING STATE (Focus Mode)
-//@Preview(name = "3. Running State", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(name = "3. Running State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun PreviewTimerSession_Running() {
     TimerPreviewWrapper {
@@ -646,7 +656,7 @@ fun PreviewTimerSession_Running() {
 }
 
 // 4. COMPLETED STATE (Summary & Tagging)
-//@Preview(name = "4. Completed State", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(name = "4. Completed State", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun PreviewTimerSession_Completed() {
     TimerPreviewWrapper {

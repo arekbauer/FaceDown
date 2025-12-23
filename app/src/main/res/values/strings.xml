@@ -8,4 +8,21 @@
     <string name="seconds">seconds</string>
     <string name="remaining">remaining</string>
     <string name="lift_to_pause">Lift to pause</string>
+    <string name="session_paused">Session paused</string>
+    <string name="continue_ready">Continue when you\'re ready</string>
+    <string name="dnd_off">DND is off</string>
+    <string name="start_focus">Start Focus</string>
+    <string name="place_screen_down">Place screen down</string>
+    <string name="timer_in_progress">Timer in progress</string>
+    <string name="min_session">min session</string>
+    <string name="fail_in">fail in</string>
+    <string name="keep_focusing">Keep focusing!</string>
+    <string name="flip_phone_resume">Flip phone to resume</string>
+
+
+    <string name="end_session_title">End session?</string>
+    <string name="end_session_text">You will lose your current focus progress</string>
+    <string name="end_session_confirm">End session</string>
+    <string name="end_session_cancel">No</string>
+
 </resources>
