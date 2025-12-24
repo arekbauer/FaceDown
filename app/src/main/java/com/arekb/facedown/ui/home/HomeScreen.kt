@@ -270,7 +270,7 @@ fun TimerSessionView(
 
     if (showStopDialog) {
         AlertDialog(
-            onDismissRequest = { showStopDialog = false },
+            onDismissRequest = { onDialogDismiss },
             title = { Text(stringResource(R.string.end_session_title)) },
             text = { Text(stringResource(R.string.end_session_text)) },
             confirmButton = {
