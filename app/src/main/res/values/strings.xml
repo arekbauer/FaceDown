@@ -18,6 +18,20 @@
     <string name="fail_in">fail in</string>
     <string name="keep_focusing">Keep focusing!</string>
     <string name="flip_phone_resume">Flip phone to resume</string>
+    <string name="session_failed">Session failed</string>
+    <string name="phone_down_late">You didn\'t put your phone down in time!</string>
+    <string name="return_home">Return home</string>
+    <string name="session_complete">Session complete!</string>
+    <string name="you_focused_for">You focused for</string>
+    <string name="what_did_you_do">What did you do?</string>
+    <string name="add_a_note">Add a note (optional)</string>
+    <string name="what_accomplish">What did you accomplish?</string>
+    <string name="save_session">Save session</string>
+
+    <string name="focus">Focus</string>
+    <string name="work">Work</string>
+    <string name="study">Study</string>
+    <string name="read">Read</string>
 
 
     <string name="end_session_title">End session?</string>

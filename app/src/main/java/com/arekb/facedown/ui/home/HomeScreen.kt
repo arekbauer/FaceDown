@@ -1,6 +1,8 @@
 package com.arekb.facedown.ui.home
 
 import android.Manifest
+import android.R.attr.onClick
+import android.R.attr.text
 import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.content.Context
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -25,18 +28,32 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults
@@ -56,8 +73,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -73,6 +92,7 @@ import com.arekb.facedown.data.timer.ServiceConstants.GRACE_LIMIT
 import com.arekb.facedown.data.timer.ServiceConstants.STARTING_COUNTDOWN
 import com.arekb.facedown.domain.model.TimerState
 import com.arekb.facedown.ui.formatTime
+import com.arekb.facedown.ui.home.components.EndTimerDisplay
 import com.arekb.facedown.ui.home.components.InfoPill
 import com.arekb.facedown.ui.home.components.PresetButtonGroup
 import com.arekb.facedown.ui.home.components.SimpleFlowingArrows
@@ -412,7 +432,8 @@ fun TimerSessionView(
                         mainText = "${state.remainingGraceSeconds}",
                         secondaryText = stringResource(R.string.fail_in),
                         progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
-                        colour = MaterialTheme.colorScheme.error
+                        colour = MaterialTheme.colorScheme.error,
+                        trackColour = MaterialTheme.colorScheme.errorContainer
                     )
 
                     Spacer(modifier = Modifier.height(120.dp))
@@ -451,7 +472,8 @@ fun TimerSessionView(
                         secondaryText = stringResource(R.string.remaining),
                         progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
                         mainTextSize = 72.sp,
-                        colour = MaterialTheme.colorScheme.onSurfaceVariant
+                        colour = MaterialTheme.colorScheme.onSurfaceVariant,
+                        trackColour = MaterialTheme.colorScheme.surfaceVariant
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -482,112 +504,144 @@ fun TimerSessionView(
                 }
 
                 is TimerState.Failed -> {
-                    Text(
-                        text = "Session Broken",
-                        style = MaterialTheme.typography.headlineMedium
+                    EndTimerDisplay(
+                        colour = MaterialTheme.colorScheme.errorContainer,
+                        icon = Icons.Rounded.Close,
+                        iconColour = MaterialTheme.colorScheme.error
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
+
+                    Spacer(modifier = Modifier.height(120.dp))
+
+                    Text(
+                        text = stringResource(R.string.session_failed),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+
+                    Text(
+                        text = stringResource(R.string.phone_down_late),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+                    FilledTonalButton(
                         onClick = onReset,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                        modifier = Modifier
+                            .navigationBarsPadding()
+                            .padding(bottom = 48.dp)
+                            .height(80.dp)
+                            .widthIn(min = 224.dp, max = 300.dp),
+                        shape = MaterialTheme.shapes.extraLargeIncreased
                     ) {
-                        Text("Return Home", color = Color.Red)
+                        Text(stringResource(R.string.return_home))
                     }
                 }
 
                 is TimerState.Completed -> {
-                    // 1. Form State (Temporary, lives only while on this screen)
                     var noteText by remember { mutableStateOf("") }
-                    var selectedTag by remember { mutableStateOf("Zen") }
-                    val tags = listOf("Work", "Study", "Code", "Read", "Zen")
+                    var selectedTag by remember { mutableStateOf("Focus") }
+                    val tags = listOf("Focus", "Work", "Study", "Read")
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(horizontal = 32.dp)
+                    EndTimerDisplay(
+                        colour = colorResource(R.color.mint_green),
+                        icon = Icons.Rounded.Check,
+                        iconColour = colorResource(R.color.leaf_green)
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    InfoPill(
+                        icon = R.drawable.icon_dnd_off_filled,
+                        string = stringResource(R.string.dnd_off)
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = stringResource(R.string.session_complete),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+
+                    Text(
+                        text = stringResource(R.string.you_focused_for) + " "
+                                + state.totalDurationMinutes.toString() + " "
+                                + stringResource(R.string.minutes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(48.dp))
+
+                    Box(
+                        modifier = Modifier.widthIn(max = 500.dp).fillMaxWidth()
                     ) {
-                        Text(
-                            text = "Session Complete!",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Well done.",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
-
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        // 2. The Note Input
-                        OutlinedTextField(
-                            value = noteText,
-                            onValueChange = { noteText = it },
-                            label = { Text("Add a note (optional)") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Color.White.copy(alpha = 0.9f),
-                                unfocusedContainerColor = Color.White.copy(alpha = 0.9f),
-                                focusedTextColor = Color.Black,
-                                unfocusedTextColor = Color.Black
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // 3. The Tag Cloud (FlowRow wraps items to next line)
-                        // Note: FlowRow is experimental in some versions, simple Row/Column works for MVP too
-                        @OptIn(ExperimentalLayoutApi::class)
-                        FlowRow(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalArrangement = Arrangement.Center,
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            tags.forEach { tag ->
-                                val isSelected = (tag == selectedTag)
-                                FilterChip(
-                                    selected = isSelected,
-                                    onClick = { selectedTag = tag },
-                                    label = { Text(tag) },
-                                    modifier = Modifier.padding(4.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color.White,
-                                        selectedLabelColor = Color(0xFF2196F3), // Match Blue Theme
-                                        containerColor = Color.White.copy(alpha = 0.2f),
-                                        labelColor = Color.White
-                                    )
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        // 4. The Save Button
-                        Button(
-                            onClick = {
-                                val minutes = state.totalDurationMinutes
-                                onSaveClicked(minutes, selectedTag, noteText.ifBlank { null })
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
-                        ) {
                             Text(
-                                text = "Save Session",
-                                color = Color(0xFF2196F3),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
+                                text = stringResource(R.string.what_did_you_do),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            ButtonGroup(
+                                overflowIndicator = { menuState ->
+                                    ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
+                                }
+                            ) {
+                                tags.forEachIndexed { index, tagLabel ->
+                                    val isSelected = (tagLabel == selectedTag)
+
+                                    this.toggleableItem(
+                                        checked = isSelected,
+                                        weight = 1f,
+                                        onCheckedChange = { selectedTag = tagLabel },
+                                        label = tagLabel,
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = noteText,
+                                onValueChange = { noteText = it },
+                                label = { Text(stringResource(R.string.add_a_note)) },
+                                placeholder = { Text(stringResource(R.string.what_accomplish)) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Edit,
+                                        contentDescription = null,
+                                    )
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                                ),
+                                singleLine = true,
+                                shape = RoundedCornerShape(99.dp),
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                    }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Option to discard
-                        TextButton(onClick = onReset) {
-                            Text("Discard", color = Color.White.copy(alpha = 0.7f))
-                        }
+                    Spacer(modifier = Modifier.weight(1f))
+                    FilledTonalButton(
+                        onClick = {
+                            val minutes = state.totalDurationMinutes
+                            onSaveClicked(minutes, selectedTag, noteText.ifBlank { null })
+                            onReset()
+                        },
+                        modifier = Modifier
+                            .navigationBarsPadding()
+                            .padding(bottom = 48.dp)
+                            .height(80.dp)
+                            .widthIn(min = 224.dp, max = 300.dp),
+                        shape = MaterialTheme.shapes.extraLargeIncreased
+                    ) {
+                        Text(stringResource(R.string.save_session))
                     }
                 }
             }
@@ -655,23 +709,6 @@ fun PreviewTimerSession_Running() {
     }
 }
 
-// 4. COMPLETED STATE (Summary & Tagging)
-@Preview(name = "4. Completed State", showBackground = true, device = "spec:width=411dp,height=891dp")
-@Composable
-fun PreviewTimerSession_Completed() {
-    TimerPreviewWrapper {
-        TimerSessionView(
-            // Assuming Completed takes the total duration focused
-            state = TimerState.Completed(totalDurationMinutes = 25),
-            selectedDuration = 25,
-            onDurationChange = {},
-            onStartClicked = {},
-            onReset = {},
-            onSaveClicked = { _, _, _ -> }
-        )
-    }
-}
-
 // 5. GRACE PERIOD (Warning State)
 @Preview(name = "5. Grace Period", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
@@ -695,6 +732,38 @@ fun PreviewTimerSession_Paused() {
     TimerPreviewWrapper {
         TimerSessionView(
             state = TimerState.Paused(remainingSeconds = 870, totalSeconds = 900, currentProgress = 0.7f),
+            selectedDuration = 25,
+            onDurationChange = {},
+            onStartClicked = {},
+            onReset = {},
+            onSaveClicked = { _, _, _ -> }
+        )
+    }
+}
+
+@Preview(name = "7. Failed Period", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun PreviewTimerSession_Failed() {
+    TimerPreviewWrapper {
+        TimerSessionView(
+            state = TimerState.Failed,
+            selectedDuration = 25,
+            onDurationChange = {},
+            onStartClicked = {},
+            onReset = {},
+            onSaveClicked = { _, _, _ -> }
+        )
+    }
+}
+
+// 4. COMPLETED STATE (Summary & Tagging)
+@Preview(name = "4. Completed State", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun PreviewTimerSession_Completed() {
+    TimerPreviewWrapper {
+        TimerSessionView(
+            // Assuming Completed takes the total duration focused
+            state = TimerState.Completed(totalDurationMinutes = 25),
             selectedDuration = 25,
             onDurationChange = {},
             onStartClicked = {},

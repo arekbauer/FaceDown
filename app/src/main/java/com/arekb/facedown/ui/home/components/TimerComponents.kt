@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
@@ -53,6 +54,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -72,7 +74,8 @@ fun TimerDisplay(
     secondaryText: String,
     progressAnimationSpec: AnimationSpec<Float>,
     mainTextSize: TextUnit = 96.sp,
-    colour: Color = MaterialTheme.colorScheme.primary
+    colour: Color = MaterialTheme.colorScheme.primary,
+    trackColour : Color = MaterialTheme.colorScheme.secondaryContainer
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -83,7 +86,8 @@ fun TimerDisplay(
         CustomWavyIndicator(
             progressFactor = progress,
             animationSpec = progressAnimationSpec,
-            colour = colour
+            colour = colour,
+            trackColour = trackColour
         )
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -107,7 +111,7 @@ fun TimerDisplay(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun CustomWavyIndicator(progressFactor: Float, animationSpec: AnimationSpec<Float>, colour: Color) {
+fun CustomWavyIndicator(progressFactor: Float, animationSpec: AnimationSpec<Float>, colour: Color, trackColour: Color) {
     val thickStrokeWidth = with(LocalDensity.current) { 12.dp.toPx() }
     val thickStroke =
         remember(thickStrokeWidth) {
@@ -133,6 +137,7 @@ fun CustomWavyIndicator(progressFactor: Float, animationSpec: AnimationSpec<Floa
         stroke = thickStroke,
         trackStroke = thickStroke,
         color = colour,
+        trackColor = trackColour
     )
 }
 
@@ -366,5 +371,50 @@ fun TimerControlBar(
         {
             // state
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun EndTimerDisplay(
+    colour: Color,
+    icon: ImageVector,
+    iconColour: Color
+) {
+    val thickStrokeWidth = with(LocalDensity.current) { 12.dp.toPx() }
+    val thickStroke =
+        remember(thickStrokeWidth) {
+            Stroke(
+                width = thickStrokeWidth,
+                cap = StrokeCap.Round
+            )
+        }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .widthIn(max = 200.dp)
+            .aspectRatio(1f)
+    ) {
+        CircularWavyProgressIndicator(
+            progress = { 1f },
+            modifier = Modifier
+                .fillMaxSize(),
+            wavelength = WavyProgressIndicatorDefaults.LinearDeterminateWavelength,
+            waveSpeed = WavyProgressIndicatorDefaults.LinearDeterminateWavelength / 2,
+            stroke = thickStroke,
+            trackStroke = thickStroke,
+            color = colour,
+        )
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = icon,
+                contentDescription = if (icon == Icons.Rounded.Close) "Failed" else "Complete!",
+                tint = iconColour,
+                modifier = Modifier.size(80.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(64.dp))
     }
 }
