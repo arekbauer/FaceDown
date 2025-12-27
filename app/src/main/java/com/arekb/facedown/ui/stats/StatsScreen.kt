@@ -106,7 +106,7 @@ fun StatsScreen(
                         value = "$streak",
                         label = "Day streak",
                         containerColour = MaterialTheme.colorScheme.primaryContainer,
-                        contentColour = MaterialTheme.colorScheme.onPrimaryFixedVariant,
+                        contentColour = MaterialTheme.colorScheme.onPrimaryContainer,
                         shape = MaterialShapes.Pill.toShape(),
                         modifier = Modifier.weight(1f)
                     )
@@ -116,7 +116,7 @@ fun StatsScreen(
                         value = formattedTime,
                         label = "Total focus",
                         containerColour = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColour = MaterialTheme.colorScheme.onSecondaryFixedVariant,
+                        contentColour = MaterialTheme.colorScheme.onSecondaryContainer,
                         shape = MaterialShapes.SoftBurst.toShape(),
                         modifier = Modifier.weight(1f)
                     )
