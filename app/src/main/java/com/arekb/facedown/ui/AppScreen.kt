@@ -65,6 +65,7 @@ import com.arekb.facedown.ui.navigation.FaceDownAppState
 import com.arekb.facedown.ui.navigation.Screen
 import com.arekb.facedown.ui.navigation.mainScreens
 import com.arekb.facedown.ui.navigation.rememberFaceDownAppState
+import com.arekb.facedown.ui.stats.StatsScreen
 
 // TODO: Import your actual feature screens here
 // import com.arekb.facedown.ui.stats.StatsScreen
@@ -198,20 +199,13 @@ fun AppScreen(
                     }
 
                     entry<Screen.Stats> {
-                        // TODO: Add your StatsScreen here
-                        // StatsScreen(contentPadding = contentPadding)
-                        TypographyShowcase(contentPadding = contentPadding)
+                        StatsScreen(contentPadding = contentPadding)
                     }
 
                     entry<Screen.Settings.Main> {
                         // TODO: Add your SettingsScreen here
                         // SettingsScreen(contentPadding = contentPadding)
-                        Box(Modifier.fillMaxSize()) {
-                            Text(
-                                "Settings Screen",
-                                Modifier.align(Alignment.Center)
-                            )
-                        }
+                        TypographyShowcase(contentPadding = contentPadding)
                     }
                 }
             )

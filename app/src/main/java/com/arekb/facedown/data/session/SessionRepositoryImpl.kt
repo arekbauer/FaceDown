@@ -1,4 +1,4 @@
-package com.arekb.facedown.domain.session
+package com.arekb.facedown.data.session
 
 import com.arekb.facedown.data.database.FocusSession
 import com.arekb.facedown.data.database.SessionDao

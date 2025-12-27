@@ -8,7 +8,6 @@ import androidx.navigation3.runtime.rememberNavBackStack
 
 @Composable
 fun rememberFaceDownAppState(
-    // We inject the backStack here so it survives config changes
     backStack: MutableList<NavKey> = rememberNavBackStack(Screen.Timer)
 ): FaceDownAppState {
     return remember(backStack) {

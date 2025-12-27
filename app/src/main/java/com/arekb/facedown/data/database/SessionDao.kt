@@ -22,4 +22,8 @@ interface SessionDao {
     // Powers the "Total Focus Time" badge
     @Query("SELECT SUM(durationMinutes) FROM focus_sessions")
     fun getTotalFocusMinutes(): Flow<Int?>
+
+    // Fetches only timestamps for streak calculation with no limit
+    @Query("SELECT timestamp FROM focus_sessions ORDER BY timestamp DESC")
+    fun getSessionTimestamps(): Flow<List<Long>>
 }

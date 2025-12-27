@@ -3,9 +3,9 @@ package com.arekb.facedown.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arekb.facedown.data.dnd.DoNotDisturbManager
+import com.arekb.facedown.data.session.SessionRepository
 import com.arekb.facedown.data.timer.TimerRepository
 import com.arekb.facedown.domain.model.TimerState
-import com.arekb.facedown.domain.session.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
