@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arekb.facedown.R
+import com.arekb.facedown.ui.stats.components.ConsistencyCard
 import com.arekb.facedown.ui.stats.components.StatsHeroCard
 import com.arekb.facedown.ui.theme.FaceDownTheme
 
@@ -79,8 +80,8 @@ fun StatsScreen(
         val effectivePadding =
             PaddingValues(
                 top = contentPadding.calculateTopPadding() + innerPadding.calculateTopPadding(),
-                start = contentPadding.calculateStartPadding(layoutDirection) + 32.dp,
-                end = contentPadding.calculateEndPadding(layoutDirection) + 32.dp,
+                start = contentPadding.calculateStartPadding(layoutDirection) + 16.dp,
+                end = contentPadding.calculateEndPadding(layoutDirection) + 16.dp,
                 bottom = contentPadding.calculateBottomPadding() + innerPadding.calculateBottomPadding()
             )
 
@@ -124,6 +125,11 @@ fun StatsScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+
+                item {
+                    ConsistencyCard(weeks = viewModel.heatmapState.collectAsState().value)
                 }
 
                 item {

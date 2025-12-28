@@ -64,6 +64,7 @@ dependencies {
     // Material 3
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.material3.window.size.class1)
+    implementation(libs.androidx.compose.foundation)
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.57.2")

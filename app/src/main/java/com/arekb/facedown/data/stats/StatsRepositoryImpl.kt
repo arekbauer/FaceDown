@@ -10,8 +10,10 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 
+enum class HeatmapLevel { NONE, LOW, MEDIUM, HIGH, EXTREME }
+
 class StatsRepositoryImpl @Inject constructor(
-    dao: SessionDao
+    private val dao: SessionDao
 ) : StatsRepository {
 
     override val currentStreak: Flow<Int> = dao.getSessionTimestamps()
@@ -67,4 +69,37 @@ class StatsRepositoryImpl @Inject constructor(
         return streak
     }
 
+    override fun getHeatmapData(): Flow<Map<LocalDate, HeatmapLevel>> {
+        return dao.getSessionTimestamps()
+            .map { timestamps ->
+                // Group timestamps by Date
+                val sessionsByDate = timestamps.groupBy {
+                    Instant.ofEpochMilli(it)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                }
+
+                // Create a map of the last 365 days (Empty by default)
+                val today = LocalDate.now()
+                val firstSessionDate = sessionsByDate.keys.minOrNull()
+                val startDate = firstSessionDate?.minusWeeks(16) ?: today.minusWeeks(16)
+                val heatmap = mutableMapOf<LocalDate, HeatmapLevel>()
+
+                var currentDate = startDate
+                while (!currentDate.isAfter(today)) {
+                    val count = sessionsByDate[currentDate]?.size ?: 0
+                    val level = when {
+                        count == 0 -> HeatmapLevel.NONE
+                        count <= 2 -> HeatmapLevel.LOW
+                        count <= 4 -> HeatmapLevel.MEDIUM
+                        count <= 6 -> HeatmapLevel.HIGH
+                        else -> HeatmapLevel.EXTREME
+                    }
+                    heatmap[currentDate] = level
+                    currentDate = currentDate.plusDays(1)
+                }
+                heatmap
+            }
+            .flowOn(Dispatchers.Default)
+    }
 }
