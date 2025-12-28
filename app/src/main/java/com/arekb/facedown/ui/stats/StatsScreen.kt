@@ -2,10 +2,10 @@ package com.arekb.facedown.ui.stats
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -87,39 +89,50 @@ fun StatsScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Column(
+            LazyColumn(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(effectivePadding)
             ) {
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
 
-                    StatsHeroCard(
-                        icon = R.drawable.icon_fire_filled,
-                        value = "$streak",
-                        label = "Day streak",
-                        containerColour = MaterialTheme.colorScheme.primaryContainer,
-                        contentColour = MaterialTheme.colorScheme.onPrimaryContainer,
-                        shape = MaterialShapes.Pill.toShape(),
-                        modifier = Modifier.weight(1f)
-                    )
+                        StatsHeroCard(
+                            icon = R.drawable.icon_fire_filled,
+                            value = "$streak",
+                            label = "Day streak",
+                            containerColour = MaterialTheme.colorScheme.primaryContainer,
+                            contentColour = MaterialTheme.colorScheme.onPrimaryContainer,
+                            shape = MaterialShapes.Pill.toShape(),
+                            modifier = Modifier.weight(1f)
+                        )
 
-                    StatsHeroCard(
-                        icon = R.drawable.icon_hourglass_filled,
-                        value = formattedTime,
-                        label = "Total focus",
-                        containerColour = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColour = MaterialTheme.colorScheme.onSecondaryContainer,
-                        shape = MaterialShapes.SoftBurst.toShape(),
-                        modifier = Modifier.weight(1f)
-                    )
+                        StatsHeroCard(
+                            icon = R.drawable.icon_hourglass_filled,
+                            value = formattedTime,
+                            label = "Total focus",
+                            containerColour = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColour = MaterialTheme.colorScheme.onSecondaryContainer,
+                            shape = MaterialShapes.SoftBurst.toShape(),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(300.dp))
+                    Button(onClick = {
+                        viewModel.injectSessions()
+                    }) {
+                        Text("Inject Test Data")
+                    }
                 }
 
             }

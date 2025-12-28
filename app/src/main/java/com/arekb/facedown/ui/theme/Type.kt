@@ -2,12 +2,15 @@ package com.arekb.facedown.ui.theme
 
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Typography
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.arekb.facedown.R
 
@@ -78,6 +81,39 @@ val FaceDownSquare = FontFamily(
         )
     )
 )
+
+@OptIn(ExperimentalTextApi::class)
+@Composable
+fun googleSansFlex(
+    weight: Int = 400,      // Standard Weight (100-1000)
+    width: Float = 100f,    // Width (wdth)
+    slant: Float = 0f,      // Slant (slnt) - usually negative like -10
+    roundness: Float = 0f,  // Roundness (ROND) - 0 to 100
+    size: TextUnit = 16.sp, // Font Size
+    lineHeight: TextUnit = TextUnit.Unspecified
+): TextStyle {
+    // We use 'remember' so this expensive font creation only happens
+    // when one of your parameters actually changes.
+    val customFontFamily = remember(weight, width, slant, roundness) {
+        FontFamily(
+            Font(
+                resId = R.font.google_sans_flex,
+                variationSettings = FontVariation.Settings(
+                    FontVariation.weight(weight),
+                    FontVariation.width(width),
+                    FontVariation.slant(slant),
+                    FontVariation.Setting("ROND", roundness)
+                )
+            )
+        )
+    }
+
+    return TextStyle(
+        fontFamily = customFontFamily,
+        fontSize = size,
+        lineHeight = lineHeight
+    )
+}
 
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

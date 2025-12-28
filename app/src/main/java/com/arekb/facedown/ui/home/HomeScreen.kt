@@ -100,6 +100,7 @@ import com.arekb.facedown.ui.home.components.TimerControlBar
 import com.arekb.facedown.ui.home.components.TimerDisplay
 import com.arekb.facedown.ui.sendTimerCommand
 import com.arekb.facedown.ui.theme.FaceDownTheme
+import com.arekb.facedown.ui.theme.googleSansFlex
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
