@@ -1,5 +1,6 @@
 package com.arekb.facedown.data.stats
 
+import com.arekb.facedown.ui.stats.components.WeeklyBarData
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -11,4 +12,6 @@ interface StatsRepository {
     fun calculateStreak(timestamps: List<Long>) : Int
 
     fun getHeatmapData(): Flow<Map<LocalDate, HeatmapLevel>>
+
+    fun getWeeklyProgress(): Flow<List<WeeklyBarData>>
 }

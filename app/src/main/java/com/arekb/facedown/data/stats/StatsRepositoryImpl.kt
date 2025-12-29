@@ -1,13 +1,18 @@
 package com.arekb.facedown.data.stats
 
 import com.arekb.facedown.data.database.SessionDao
+import com.arekb.facedown.ui.stats.components.WeeklyBarData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
+import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
 
 enum class HeatmapLevel { NONE, LOW, MEDIUM, HIGH, EXTREME }
@@ -101,5 +106,57 @@ class StatsRepositoryImpl @Inject constructor(
                 heatmap
             }
             .flowOn(Dispatchers.Default)
+    }
+
+    override fun getWeeklyProgress(): Flow<List<WeeklyBarData>> {
+        return flow {
+            val now = LocalDate.now()
+            val zoneId = ZoneId.systemDefault()
+
+            // Calculate "This Week" window (Monday 00:00 -> Sunday 23:59)
+            val startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                .atStartOfDay(zoneId)
+                .toInstant()
+                .toEpochMilli()
+
+            val endOfWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+                .atTime(LocalTime.MAX)
+                .atZone(zoneId)
+                .toInstant()
+                .toEpochMilli()
+
+            // Emit the flow from DB
+            dao.getSessionsInWindow(startOfWeek, endOfWeek).collect { sessions ->
+
+                // Group by Day of Week
+                val minutesByDay = sessions.groupBy { session ->
+                    Instant.ofEpochMilli(session.timestamp)
+                        .atZone(zoneId)
+                        .dayOfWeek // Enum: MONDAY, TUESDAY...
+                }.mapValues { (_, sessionsList) ->
+                    // Directly sum the minutes
+                    sessionsList.sumOf { it.durationMinutes }
+                }
+
+                // D. Find the maximum value to normalize bar heights
+                // If max is 0 (empty week), default to 1 to avoid divide-by-zero
+                val maxMinutes = minutesByDay.values.maxOrNull() ?: 1
+                val safeMax = if (maxMinutes == 0) 1 else maxMinutes
+
+                // E. Build the list of 7 days (Mon-Sun)
+                val barData = DayOfWeek.entries.map { dayOfWeek ->
+                    val minutes = minutesByDay[dayOfWeek] ?: 0
+
+                    WeeklyBarData(
+                        dayLabel = dayOfWeek.name.take(1), // "M", "T"...
+                        minutes = minutes,
+                        ratio = minutes.toFloat() / safeMax.toFloat(),
+                        isToday = dayOfWeek == now.dayOfWeek
+                    )
+                }
+
+                emit(barData)
+            }
+        }.flowOn(Dispatchers.Default)
     }
 }

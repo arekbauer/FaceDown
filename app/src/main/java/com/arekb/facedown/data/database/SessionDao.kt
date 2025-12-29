@@ -26,4 +26,8 @@ interface SessionDao {
     // Fetches only timestamps for streak calculation with no limit
     @Query("SELECT timestamp FROM focus_sessions ORDER BY timestamp DESC")
     fun getSessionTimestamps(): Flow<List<Long>>
+
+    // Fetches sessions in a specific time window
+    @Query("SELECT * FROM focus_sessions WHERE timestamp BETWEEN :startTime AND :endTime")
+    fun getSessionsInWindow(startTime: Long, endTime: Long): Flow<List<FocusSession>>
 }
