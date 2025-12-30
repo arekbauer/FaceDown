@@ -30,6 +30,9 @@ class StatsViewModel @Inject constructor(
     val totalFocusMinutes = statsRepository.totalFocusTime
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    val weeklyStats = statsRepository.getWeeklyProgress()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val heatmapState: StateFlow<List<HeatmapWeek>> = statsRepository.getHeatmapData()
         .map { dataMap ->
             // Convert the flat map into a list of Weeks

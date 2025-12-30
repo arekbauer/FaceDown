@@ -2,6 +2,7 @@ package com.arekb.facedown.ui.stats
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.arekb.facedown.R
+import com.arekb.facedown.ui.stats.components.AnimatedWeeklyChart
 import com.arekb.facedown.ui.stats.components.ConsistencyCard
 import com.arekb.facedown.ui.stats.components.StatsHeroCard
 import com.arekb.facedown.ui.theme.FaceDownTheme
@@ -130,6 +132,22 @@ fun StatsScreen(
 
                 item {
                     ConsistencyCard(weeks = viewModel.heatmapState.collectAsState().value)
+                }
+
+                item {
+                    val weeklyData by viewModel.weeklyStats.collectAsState()
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Weekly snapshot",
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        AnimatedWeeklyChart(weekData = weeklyData)
+                    }
                 }
 
                 item {

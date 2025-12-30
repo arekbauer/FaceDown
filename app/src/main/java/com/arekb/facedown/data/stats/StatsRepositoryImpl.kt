@@ -148,7 +148,7 @@ class StatsRepositoryImpl @Inject constructor(
                     val minutes = minutesByDay[dayOfWeek] ?: 0
 
                     WeeklyBarData(
-                        dayLabel = dayOfWeek.name.take(1), // "M", "T"...
+                        dayLabel = dayOfWeek.name.take(3), // "M", "T"...
                         minutes = minutes,
                         ratio = minutes.toFloat() / safeMax.toFloat(),
                         isToday = dayOfWeek == now.dayOfWeek

@@ -119,7 +119,7 @@ fun ConsistencyCard(
                 Column {
                     Text(
                         text = "Consistency",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.headlineSmall
                     )
                     Text(
                         text = "Last 12 months",
