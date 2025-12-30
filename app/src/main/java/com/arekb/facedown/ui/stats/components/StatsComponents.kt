@@ -65,8 +65,8 @@ fun PreviewWeeklyChart() {
         WeeklyBarData("Mon", 45, 0.37f, false),
         WeeklyBarData("Tue", 120, 1.0f, false), // Best Day (Ratio 1.0)
         WeeklyBarData("Wed", 0, 0f, false),   // Zero Day
-        WeeklyBarData("Thu", 60, 0.5f, true),   // TODAY
-        WeeklyBarData("Fri", 0, 0.0f, false),   // Future
+        WeeklyBarData("Thu", 60, 0.5f, false),   // TODAY
+        WeeklyBarData("Fri", 76, 0.75f, true),   // Future
         WeeklyBarData("Sat", 0, 0.0f, false),   // Future
         WeeklyBarData("Sun", 0, 0.0f, false)    // Future
     )
@@ -141,7 +141,6 @@ fun AnimatedWeeklyChart(
     // Fonts
     val textMeasurer = rememberTextMeasurer()
     val labelLarge = MaterialTheme.typography.labelLarge
-    val labelMedium = MaterialTheme.typography.labelMedium
 
     // --- ANIMATION STATE ---
     // Create one unique animation property for each bar
@@ -286,7 +285,8 @@ fun AnimatedWeeklyChart(
 fun formatMinutes(minutes: Int): String {
     if (minutes < 60) return "${minutes}m"
     val h = minutes / 60
-    return "${h}h"
+    val m = minutes % 60
+    return if (m == 0) "${h}h" else "${h}h ${m}m"
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

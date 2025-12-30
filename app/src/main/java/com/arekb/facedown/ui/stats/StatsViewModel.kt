@@ -49,13 +49,6 @@ class StatsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Helper to format for UI (e.g. "14h 30m")
-    fun formatDuration(totalMinutes: Int): String {
-        val hours = totalMinutes / 60
-        val minutes = totalMinutes % 60
-        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
-    }
-
      fun injectSessions(){
         viewModelScope.launch {
             sessionInjector.injectMockData()

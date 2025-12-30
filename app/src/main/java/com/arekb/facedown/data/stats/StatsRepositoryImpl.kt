@@ -86,12 +86,15 @@ class StatsRepositoryImpl @Inject constructor(
 
                 // Create a map of the last 365 days (Empty by default)
                 val today = LocalDate.now()
-                val firstSessionDate = sessionsByDate.keys.minOrNull()
-                val startDate = firstSessionDate?.minusWeeks(16) ?: today.minusWeeks(16)
+                val firstSessionDate = sessionsByDate.keys.minOrNull() ?: today
+                val rawStartDate = firstSessionDate.minusWeeks(16)
+                val startDate = rawStartDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                 val heatmap = mutableMapOf<LocalDate, HeatmapLevel>()
 
                 var currentDate = startDate
-                while (!currentDate.isAfter(today)) {
+                val endOfCurrentWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+
+                while (!currentDate.isAfter(endOfCurrentWeek)) {
                     val count = sessionsByDate[currentDate]?.size ?: 0
                     val level = when {
                         count == 0 -> HeatmapLevel.NONE
