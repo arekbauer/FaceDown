@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -31,7 +30,6 @@ import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
 import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -66,10 +64,6 @@ import com.arekb.facedown.ui.navigation.Screen
 import com.arekb.facedown.ui.navigation.mainScreens
 import com.arekb.facedown.ui.navigation.rememberFaceDownAppState
 import com.arekb.facedown.ui.stats.StatsScreen
-
-// TODO: Import your actual feature screens here
-// import com.arekb.facedown.ui.stats.StatsScreen
-// import com.arekb.facedown.ui.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -170,7 +164,6 @@ fun AppScreen(
                                         ) {
                                             Text(
                                                 text = stringResource(item.label),
-                                                style = MaterialTheme.typography.labelLarge,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Clip,
                                                 modifier = Modifier.padding(start = ButtonDefaults.IconSpacing)
@@ -190,8 +183,7 @@ fun AppScreen(
             NavDisplay(
                 backStack = appState.backStack,
                 onBack = appState::goBack,
-                // Simple Crossfade for screen transitions
-                transitionSpec = { fadeIn().togetherWith(fadeOut()) },
+                // TODO: Add a slide in and out animation
                 entryProvider = entryProvider {
 
                     entry<Screen.Timer> {
