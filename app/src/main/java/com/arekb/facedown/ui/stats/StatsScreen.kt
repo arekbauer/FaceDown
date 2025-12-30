@@ -1,13 +1,11 @@
 package com.arekb.facedown.ui.stats
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +29,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -68,99 +65,94 @@ fun StatsScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.toolbar_stats_label), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.headlineMediumEmphasized) },
+                    style = MaterialTheme.typography.headlineMediumEmphasized)}
             )
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        containerColor = Color.Transparent,
 
     ) { innerPadding ->
 
         val effectivePadding =
             PaddingValues(
-                top = contentPadding.calculateTopPadding() + innerPadding.calculateTopPadding(),
-                start = contentPadding.calculateStartPadding(layoutDirection) + 16.dp,
-                end = contentPadding.calculateEndPadding(layoutDirection) + 16.dp,
-                bottom = contentPadding.calculateBottomPadding() + innerPadding.calculateBottomPadding()
+                top = innerPadding.calculateTopPadding() + 16.dp,
+                start = contentPadding.calculateStartPadding(layoutDirection),
+                end = contentPadding.calculateEndPadding(layoutDirection),
+                bottom = contentPadding.calculateBottomPadding()
             )
 
-        Box(
+        LazyColumn(
+            contentPadding = effectivePadding,
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            LazyColumn(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(effectivePadding)
-            ) {
 
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
 
-                        StatsHeroCard(
-                            icon = R.drawable.icon_fire_filled,
-                            value = "$streak",
-                            label = "Day streak",
-                            containerColour = MaterialTheme.colorScheme.primaryContainer,
-                            contentColour = MaterialTheme.colorScheme.onPrimaryContainer,
-                            shape = MaterialShapes.Pill.toShape(),
-                            modifier = Modifier.weight(1f)
-                        )
+                    StatsHeroCard(
+                        icon = R.drawable.icon_fire_filled,
+                        value = "$streak",
+                        label = "Day streak",
+                        containerColour = MaterialTheme.colorScheme.primaryContainer,
+                        contentColour = MaterialTheme.colorScheme.onPrimaryContainer,
+                        shape = MaterialShapes.Pill.toShape(),
+                        modifier = Modifier.weight(1f)
+                    )
 
-                        StatsHeroCard(
-                            icon = R.drawable.icon_hourglass_filled,
-                            value = formattedTime,
-                            label = "Total focus",
-                            containerColour = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColour = MaterialTheme.colorScheme.onSecondaryContainer,
-                            shape = MaterialShapes.SoftBurst.toShape(),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(32.dp))
+                    StatsHeroCard(
+                        icon = R.drawable.icon_hourglass_filled,
+                        value = formattedTime,
+                        label = "Total focus",
+                        containerColour = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColour = MaterialTheme.colorScheme.onSecondaryContainer,
+                        shape = MaterialShapes.SoftBurst.toShape(),
+                        modifier = Modifier.weight(1f)
+                    )
                 }
-
-                item {
-                    ConsistencyCard(weeks = viewModel.heatmapState.collectAsState().value)
-                }
-
-                item {
-                    val weeklyData by viewModel.weeklyStats.collectAsState()
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Weekly snapshot",
-                            style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
-                        AnimatedWeeklyChart(weekData = weeklyData)
-                    }
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(300.dp))
-                    Button(onClick = {
-                        viewModel.injectSessions()
-                    }) {
-                        Text("Inject Test Data")
-                    }
-                }
-
+                Spacer(modifier = Modifier.height(32.dp))
             }
+
+            item {
+                ConsistencyCard(weeks = viewModel.heatmapState.collectAsState().value)
+            }
+
+            item {
+                val weeklyData by viewModel.weeklyStats.collectAsState()
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Weekly snapshot",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    AnimatedWeeklyChart(weekData = weeklyData)
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(300.dp))
+                Button(onClick = {
+                    viewModel.injectSessions()
+                }) {
+                    Text("Inject Test Data")
+                }
+            }
+
         }
+
     }
 }
 
