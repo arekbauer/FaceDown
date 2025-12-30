@@ -124,20 +124,17 @@ fun StatsScreen(
 
             item {
                 ConsistencyCard(weeks = viewModel.heatmapState.collectAsState().value)
+                Spacer(modifier = Modifier.height(32.dp))
             }
 
             item {
                 val weeklyData by viewModel.weeklyStats.collectAsState()
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(8.dp)) {
                     Text(
-                        text = "Weekly snapshot",
-                        style = MaterialTheme.typography.headlineSmall,
+                        text = "Weekly Snapshot",
+                        style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-
                     AnimatedWeeklyChart(weekData = weeklyData)
                 }
             }

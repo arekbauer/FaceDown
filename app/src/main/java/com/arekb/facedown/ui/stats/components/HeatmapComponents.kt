@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,8 +21,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -100,11 +100,8 @@ fun ConsistencyCard(
     weeks: List<HeatmapWeek>,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    ElevatedCard(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -116,18 +113,10 @@ fun ConsistencyCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "Consistency",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    Text(
-                        text = "Last 12 months",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
+                Text(
+                    text = "Consistency Grid",
+                    style = MaterialTheme.typography.titleLarge
+                )
                 // --- LEGEND ---
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -149,8 +138,8 @@ fun ConsistencyCard(
 @Composable
 fun ResponsiveHeatmap(
     weeks: List<HeatmapWeek>,
-    targetSquareSize: Dp = 16.dp,
     modifier: Modifier = Modifier,
+    targetSquareSize: Dp = 16.dp,
     style: HeatmapStyle = HeatmapStyle()
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
@@ -282,7 +271,8 @@ private fun WeekCanvasColumn(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 softWrap = false,
-                overflow = TextOverflow.Visible
+                overflow = TextOverflow.Visible,
+                modifier = Modifier.offset(x = (-2).dp)
             )
         }
     }
@@ -290,8 +280,8 @@ private fun WeekCanvasColumn(
 
 @Composable
 fun HeatmapLegend(
-    style: HeatmapStyle = HeatmapStyle(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: HeatmapStyle = HeatmapStyle()
 ) {
 
     val baseColor = MaterialTheme.colorScheme.tertiary
