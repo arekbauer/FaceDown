@@ -49,6 +49,9 @@ class StatsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val recentSessions = statsRepository.getRecentSessions()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
      fun injectSessions(){
         viewModelScope.launch {
             sessionInjector.injectMockData()

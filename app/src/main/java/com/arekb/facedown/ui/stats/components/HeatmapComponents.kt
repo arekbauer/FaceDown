@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -195,7 +194,10 @@ private fun DynamicHeatmap(
         modifier = Modifier
             .fillMaxWidth()
             .height(containerHeight),
-        horizontalArrangement = Arrangement.spacedBy(style.gutterWidth),
+        horizontalArrangement = Arrangement.spacedBy(
+            space = style.gutterWidth,
+            alignment = Alignment.CenterHorizontally
+        ),
         contentPadding = PaddingValues(horizontal = 0.dp) // Crucial: No padding interferes with math
     ) {
         items(weeks) { week ->
@@ -271,8 +273,7 @@ private fun WeekCanvasColumn(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 softWrap = false,
-                overflow = TextOverflow.Visible,
-                modifier = Modifier.offset(x = (-2).dp)
+                overflow = TextOverflow.Visible
             )
         }
     }

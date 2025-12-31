@@ -14,10 +14,9 @@ interface SessionDao {
     @Query("SELECT * FROM focus_sessions ORDER BY timestamp DESC LIMIT 50")
     fun getAllSessions(): Flow<List<FocusSession>>
 
-    // Powers the Weekly Bar Chart (Phase 5)
-    // We filter by a time range (e.g., Start of Monday -> Now)
-    @Query("SELECT * FROM focus_sessions WHERE timestamp BETWEEN :startTime AND :endTime")
-    suspend fun getSessionsInRange(startTime: Long, endTime: Long): List<FocusSession>
+    // Gets the 5 most recent sessions
+    @Query("SELECT * FROM focus_sessions ORDER BY timestamp DESC LIMIT 5")
+    fun getRecentSessions(): Flow<List<FocusSession>>
 
     // Powers the "Total Focus Time" badge
     @Query("SELECT SUM(durationMinutes) FROM focus_sessions")
