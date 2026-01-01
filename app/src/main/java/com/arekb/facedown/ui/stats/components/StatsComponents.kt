@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,14 +42,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arekb.facedown.R
+import com.arekb.facedown.data.database.FocusSession
 import com.arekb.facedown.ui.theme.FaceDownTheme
 import com.arekb.facedown.ui.theme.googleSansFlex
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 data class WeeklyBarData(
     val dayLabel: String, // "M", "T", "W"...
@@ -55,6 +65,61 @@ data class WeeklyBarData(
     val ratio: Float,     // 0.0 to 1.0 (relative to the biggest bar)
     val isToday: Boolean
 )
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Preview(showBackground = true, widthDp = 400)
+@Composable
+fun PreviewSessionCard() {
+    FaceDownTheme {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            SessionCard(
+                session = FocusSession(
+                    id = 1,
+                    durationMinutes = 30,
+                    timestamp = Instant.now().toEpochMilli(),
+                    tag = "Work",
+                    note = "Finished the Q3 report draft."
+                ),
+                shape = MaterialShapes.SoftBurst.toShape(),
+                onClick = {}
+            )
+            // yesterday
+            SessionCard(
+                session = FocusSession(
+                    id = 1,
+                    durationMinutes = 25,
+                    timestamp = Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                    tag = "Read",
+                    note = null
+                ),
+                shape = MaterialShapes.SoftBurst.toShape(),
+                onClick = {}
+            )
+            SessionCard(
+                session = FocusSession(
+                    id = 1,
+                    durationMinutes = 30,
+                    timestamp = Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli(),
+                    tag = "Focus",
+                    note = null
+                ),
+                shape = MaterialShapes.SoftBurst.toShape(),
+                onClick = {}
+            )
+            SessionCard(
+                session = FocusSession(
+                    id = 1,
+                    durationMinutes = 30,
+                    timestamp = Instant.now().minus(31, ChronoUnit.DAYS).toEpochMilli(),
+                    tag = "Study",
+                    note = "Revising biology"
+                ),
+                shape = MaterialShapes.SoftBurst.toShape(),
+                onClick = {}
+            )
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -281,14 +346,6 @@ fun AnimatedWeeklyChart(
     }
 }
 
-// Helper to keep labels short
-fun formatMinutes(minutes: Int): String {
-    if (minutes < 60) return "${minutes}m"
-    val h = minutes / 60
-    val m = minutes % 60
-    return if (m == 0) "${h}h" else "${h}h ${m}m"
-}
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun StatsHeroCard(
@@ -348,6 +405,138 @@ fun StatsHeroCard(
                     color = contentColour
                 )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun SessionCard(
+    session: FocusSession,
+    onClick: () -> Unit,
+    shape: Shape
+) {
+    val baseColor = getTagColor(session.tag)
+    val faintColor = baseColor.copy(alpha = 0.1f)
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(8.dp), // More breathing room
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                color = faintColor,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.width(60.dp)
+            ) {
+                Text(
+                    text = session.tag.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = baseColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f) // Fills available space
+            ) {
+                // Note
+                Text(
+                    text = if (session.note.isNullOrBlank()) "${session.tag} session" else session.note,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Time
+                Text(
+                    text = formatSessionTime(session.timestamp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.outline,
+                )
+            }
+
+            // Duration Badge
+            Surface(
+                color = faintColor,
+                shape = shape,
+                modifier = Modifier.size(70.dp)
+
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(
+                        text = "${session.durationMinutes}m",
+                        style = googleSansFlex(
+                            weight = 700,
+                            slant = -10f,
+                            width = 112.5f,
+                            roundness = 100f,
+                            size = 18.sp
+                        ),
+                        color = baseColor,
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+// Helper to keep labels short
+fun formatMinutes(minutes: Int): String {
+    if (minutes < 60) return "${minutes}m"
+    val h = minutes / 60
+    val m = minutes % 60
+    return if (m == 0) "${h}h" else "${h}h ${m}m"
+}
+
+fun getTagColor(tag: String): Color {
+    return when (tag.uppercase()) {
+        "WORK" -> Color(0xFF5E60CE) // Purple
+        "STUDY" -> Color(0xFF43A047) // Green
+        "READ" -> Color(0xFFE65100) // Orange
+        else -> Color(0xFF00796B) // Teal default
+    }
+}
+
+@Composable
+fun formatSessionTime(timestamp: Long): String {
+    return remember(timestamp) {
+        val instant = Instant.ofEpochMilli(timestamp)
+        val zoneId = ZoneId.systemDefault()
+        val sessionDate = instant.atZone(zoneId).toLocalDate()
+        val today = java.time.LocalDate.now()
+
+        val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+        val dateFormatter = DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault())
+
+        val timeStr = instant.atZone(zoneId).format(timeFormatter)
+
+        when {
+            sessionDate.isEqual(today) -> "$timeStr"
+            sessionDate.isEqual(today.minusDays(1)) -> "Yesterday"
+            else -> instant.atZone(zoneId).format(dateFormatter)
         }
     }
 }
