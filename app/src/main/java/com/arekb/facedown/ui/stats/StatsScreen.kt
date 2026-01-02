@@ -49,7 +49,8 @@ import com.arekb.facedown.ui.theme.FaceDownTheme
 @Composable
 fun StatsScreen(
     viewModel: StatsViewModel = hiltViewModel(),
-    contentPadding: PaddingValues
+    contentPadding: PaddingValues,
+    onNavigateToHistory: () -> Unit
 ) {
     val layoutDirection = LocalLayoutDirection.current
 
@@ -160,7 +161,7 @@ fun StatsScreen(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(
-                        onClick = {  }
+                        onClick = onNavigateToHistory
                     ) {
                         Text(
                             text = "See all",
@@ -203,7 +204,7 @@ fun StatsScreenPreview()
 {
     FaceDownTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
-            StatsScreen(contentPadding = PaddingValues(16.dp))
+            StatsScreen(contentPadding = PaddingValues(16.dp), onNavigateToHistory = {})
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.arekb.facedown.data.stats
 
-import com.arekb.facedown.data.database.FocusSession
 import com.arekb.facedown.data.database.SessionDao
 import com.arekb.facedown.ui.stats.components.WeeklyBarData
 import kotlinx.coroutines.Dispatchers
@@ -31,11 +30,6 @@ class StatsRepositoryImpl @Inject constructor(
     override val totalFocusTime: Flow<Int> = dao.getTotalFocusMinutes()
         .map { it ?: 0 } // Handle null (empty DB) by returning 0
         .flowOn(Dispatchers.IO)
-
-    override fun getRecentSessions(): Flow<List<FocusSession>> {
-        return dao.getRecentSessions()
-            .flowOn(Dispatchers.Default)
-    }
 
     override fun calculateStreak(timestamps: List<Long>): Int {
         if (timestamps.isEmpty()) return 0

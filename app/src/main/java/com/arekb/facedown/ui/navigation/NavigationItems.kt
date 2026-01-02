@@ -19,7 +19,7 @@ val mainScreens = listOf(
         unselectedIcon = R.drawable.toolbar_timer_outlined
     ),
     NavigationItem(
-        route = Screen.Stats,
+        route = Screen.Stats.Main,
         label = R.string.toolbar_stats_label,
         selectedIcon = R.drawable.toolbar_stats_filled,
         unselectedIcon = R.drawable.toolbar_stats_outlined

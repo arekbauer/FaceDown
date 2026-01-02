@@ -63,6 +63,7 @@ import com.arekb.facedown.ui.navigation.FaceDownAppState
 import com.arekb.facedown.ui.navigation.Screen
 import com.arekb.facedown.ui.navigation.mainScreens
 import com.arekb.facedown.ui.navigation.rememberFaceDownAppState
+import com.arekb.facedown.ui.stats.HistoryScreen
 import com.arekb.facedown.ui.stats.StatsScreen
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -190,8 +191,16 @@ fun AppScreen(
                         HomeScreen(contentPadding = contentPadding)
                     }
 
-                    entry<Screen.Stats> {
-                        StatsScreen(contentPadding = contentPadding)
+                    entry<Screen.Stats.Main> {
+                        StatsScreen(
+                            contentPadding = contentPadding,
+                            onNavigateToHistory = { appState.navigateTo(Screen.Stats.History) })
+                    }
+
+                    entry<Screen.Stats.History> {
+                        HistoryScreen(
+                            onBackClick = appState::goBack
+                        )
                     }
 
                     entry<Screen.Settings.Main> {

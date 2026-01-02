@@ -5,16 +5,26 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class Screen : NavKey {
+
+    open val navSection: Screen get() = this
     @Serializable
     data object Timer : Screen()
+
     @Serializable
-    data object Stats : Screen()
+    sealed class Stats : Screen() {
+        override val navSection: Screen get() = Main
+        @Serializable
+        data object Main : Stats()
+        @Serializable
+        data object History : Stats()
+    }
 
     // Nested Hierarchy for Settings (Scalable)
     @Serializable
-    data object Settings : Screen() {
+    sealed class Settings : Screen() {
+        override val navSection: Screen get() = Main
         @Serializable
-        data object Main : Screen()
+        data object Main : Settings()
         // Future: @Serializable data object Appearance : Screen()
     }
 }

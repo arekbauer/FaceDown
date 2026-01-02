@@ -1,5 +1,6 @@
 package com.arekb.facedown.data.database
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -10,13 +11,13 @@ interface SessionDao {
     @Insert
     suspend fun insertSession(session: FocusSession)
 
-    // Powers the History List
-    @Query("SELECT * FROM focus_sessions ORDER BY timestamp DESC LIMIT 50")
-    fun getAllSessions(): Flow<List<FocusSession>>
-
     // Gets the 5 most recent sessions
     @Query("SELECT * FROM focus_sessions ORDER BY timestamp DESC LIMIT 5")
     fun getRecentSessions(): Flow<List<FocusSession>>
+
+    // Gets all sessions in a paging source
+    @Query("SELECT * FROM focus_sessions ORDER BY timestamp DESC")
+    fun getSessionsPagingSource(): PagingSource<Int, FocusSession>
 
     // Powers the "Total Focus Time" badge
     @Query("SELECT SUM(durationMinutes) FROM focus_sessions")

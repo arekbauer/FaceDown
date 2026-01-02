@@ -24,7 +24,13 @@ class FaceDownAppState(
      * This removes the logic from the UI.
      */
     fun isSelected(route: Screen): Boolean {
-        return backStack.lastOrNull() == route
+        val currentNavKey = backStack.lastOrNull() ?: return false
+
+        // Cast the generic key to our specific Screen type
+        val currentScreen = currentNavKey as? Screen ?: return false
+
+        // Now .navSection will be recognized
+        return currentScreen.navSection == route.navSection
     }
 
     /**
@@ -49,6 +55,13 @@ class FaceDownAppState(
                 backStack[backStack.lastIndex] = destination
             }
         }
+    }
+
+    /**
+     * Simple Navigation Logic.
+     */
+    fun navigateTo(destination: Screen) {
+        backStack.add(destination)
     }
 
     fun goBack() {

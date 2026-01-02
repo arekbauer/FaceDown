@@ -2,7 +2,9 @@ package com.arekb.facedown.ui.stats
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import com.arekb.facedown.data.mocking.MockSessionInjector
+import com.arekb.facedown.data.session.SessionRepository
 import com.arekb.facedown.data.stats.HeatmapLevel
 import com.arekb.facedown.data.stats.StatsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +19,7 @@ import java.time.LocalDate
 @HiltViewModel
 class StatsViewModel @Inject constructor(
     private val statsRepository: StatsRepository,
+    private val sessionRepository: SessionRepository,
     private val sessionInjector: MockSessionInjector
 ) : ViewModel() {
 
@@ -49,8 +52,11 @@ class StatsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val recentSessions = statsRepository.getRecentSessions()
+    val recentSessions = sessionRepository.getRecentSessions()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val historyPagingFlow = sessionRepository.getSessionHistoryStream()
+        .cachedIn(viewModelScope)
 
      fun injectSessions(){
         viewModelScope.launch {
