@@ -43,7 +43,7 @@ class FaceDownAppState(
             if (backStack.size > 1) {
                 // Remove everything after the first element (Timer)
                 while (backStack.size > 1) {
-                    backStack.removeLast()
+                    backStack.removeAt(backStack.lastIndex)
                 }
             }
         } else {
