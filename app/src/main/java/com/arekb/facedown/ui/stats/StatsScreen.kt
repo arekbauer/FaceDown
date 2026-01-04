@@ -12,12 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.arekb.facedown.BuildConfig
 import com.arekb.facedown.R
 import com.arekb.facedown.ui.stats.components.AnimatedWeeklyChart
 import com.arekb.facedown.ui.stats.components.ConsistencyCard
@@ -80,7 +82,15 @@ fun StatsScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.toolbar_stats_label), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.headlineMediumEmphasized)}
+                    style = MaterialTheme.typography.headlineMediumEmphasized)},
+                actions = {
+                    if (BuildConfig.DEBUG) {
+                        IconButton(onClick = viewModel::injectSessions
+                        ) {
+                            Spacer(Modifier.size(24.dp))
+                        }
+                    }
+                },
             )
         },
 
@@ -182,18 +192,7 @@ fun StatsScreen(
                     shape = currentShape.toShape()
                 )
             }
-
-            item {
-                Spacer(modifier = Modifier.height(100.dp))
-                Button(onClick = {
-                    viewModel.injectSessions()
-                }) {
-                    Text("Inject Test Data")
-                }
-            }
-
         }
-
     }
 }
 
