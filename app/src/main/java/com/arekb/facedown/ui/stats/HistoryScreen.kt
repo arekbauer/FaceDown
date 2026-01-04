@@ -1,10 +1,12 @@
 package com.arekb.facedown.ui.stats
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,16 +20,19 @@ import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.arekb.facedown.ui.stats.components.SessionCard
 
@@ -67,7 +72,7 @@ fun HistoryScreen(
                 },
                 scrollBehavior = scrollBehavior
             )
-        }
+        },
     ) { innerPadding ->
 
         val effectivePadding =
@@ -129,13 +134,26 @@ fun HistoryScreen(
                 }
             }
 
-            // Optional: Handle Loading & Error States at the bottom
-            /* when (pagingItems.loadState.append) {
-                is LoadState.Loading -> item { CircularProgressIndicator(...) }
-                is LoadState.Error -> item { Text("Error loading more") }
-                else -> {}
+            // Error Handling (if any)
+            val appendState = pagingItems.loadState.append
+
+            if (appendState is LoadState.Error) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        TextButton(onClick = { pagingItems.retry() }) {
+                            Text(
+                                text = "Error loading, tap to retry",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
             }
-            */
         }
     }
 }
