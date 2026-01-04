@@ -41,7 +41,6 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
@@ -79,7 +79,7 @@ fun AppScreen(
     val systemBarsInsets = WindowInsets.systemBars.asPaddingValues()
     val cutoutInsets = WindowInsets.displayCutout.asPaddingValues()
 
-    val timerState = homeViewModel.timerState.collectAsState().value
+    val timerState = homeViewModel.timerState.collectAsStateWithLifecycle().value
     val showBottomBar = when (timerState) {
         is TimerState.Idle -> true
         else -> false

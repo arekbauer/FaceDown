@@ -86,6 +86,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arekb.facedown.R
 import com.arekb.facedown.data.timer.ServiceConstants
 import com.arekb.facedown.data.timer.ServiceConstants.GRACE_LIMIT
@@ -154,8 +155,8 @@ fun HomeScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val timerState by viewModel.timerState.collectAsState()
-    val selectedDuration by viewModel.selectedDuration.collectAsState()
+    val timerState by viewModel.timerState.collectAsStateWithLifecycle()
+    val selectedDuration by viewModel.selectedDuration.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

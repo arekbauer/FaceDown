@@ -27,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -56,8 +55,8 @@ fun StatsScreen(
 ) {
     val layoutDirection = LocalLayoutDirection.current
 
-    val streak by viewModel.currentStreak.collectAsState()
-    val totalMinutes by viewModel.totalFocusMinutes.collectAsState()
+    val streak by viewModel.currentStreak.collectAsStateWithLifecycle()
+    val totalMinutes by viewModel.totalFocusMinutes.collectAsStateWithLifecycle()
     val sessions by viewModel.recentSessions.collectAsStateWithLifecycle()
 
     val formattedTime = remember(totalMinutes) {
@@ -144,12 +143,12 @@ fun StatsScreen(
             }
 
             item {
-                ConsistencyCard(weeks = viewModel.heatmapState.collectAsState().value)
+                ConsistencyCard(weeks = viewModel.heatmapState.collectAsStateWithLifecycle().value)
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
             item {
-                val weeklyData by viewModel.weeklyStats.collectAsState()
+                val weeklyData by viewModel.weeklyStats.collectAsStateWithLifecycle()
                 Column(modifier = Modifier.padding(8.dp)) {
                     Text(
                         text = "Weekly Snapshot",
