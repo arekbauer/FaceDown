@@ -2,7 +2,11 @@ package com.arekb.facedown.ui.stats
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +26,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -31,12 +36,14 @@ import com.arekb.facedown.ui.stats.components.SessionCard
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HistoryScreen(
+    contentPadding: PaddingValues,
     viewModel: StatsViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
     // 1. Collect the Paging Data
     val pagingItems = viewModel.historyPagingFlow.collectAsLazyPagingItems()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val layoutDirection = LocalLayoutDirection.current
 
     // 2. Define your shapes list (Mocking the list you mentioned)
     val iconShapes = remember {
@@ -50,6 +57,7 @@ fun HistoryScreen(
     }
 
     Scaffold(
+        bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
         topBar = {
             TopAppBar(
                 title = { Text("Session History", style = MaterialTheme.typography.headlineSmallEmphasized) },
@@ -64,14 +72,22 @@ fun HistoryScreen(
                 scrollBehavior = scrollBehavior
             )
         }
-    ) { padding ->
-        // 3. The List
+    ) { innerPadding ->
+
+        val effectivePadding =
+            PaddingValues(
+                top = innerPadding.calculateTopPadding(),
+                start = contentPadding.calculateStartPadding(layoutDirection),
+                end = contentPadding.calculateEndPadding(layoutDirection),
+                bottom = contentPadding.calculateBottomPadding()
+            )
+
         LazyColumn(
+            contentPadding = effectivePadding,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp) // Gap between cards
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp) // Gap between cards
         ) {
 
             // Paging 3 Item Handling

@@ -199,6 +199,7 @@ fun AppScreen(
 
                     entry<Screen.Stats.History> {
                         HistoryScreen(
+                            contentPadding = contentPadding,
                             onBackClick = appState::goBack
                         )
                     }
