@@ -179,8 +179,7 @@ fun StatsScreen(
 
                 SessionCard(
                     session = session,
-                    shape = currentShape.toShape(),
-                    onClick = {}
+                    shape = currentShape.toShape()
                 )
             }
 

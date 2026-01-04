@@ -4,7 +4,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,8 +79,7 @@ fun PreviewSessionCard() {
                     tag = "Work",
                     note = "Finished the Q3 report draft."
                 ),
-                shape = MaterialShapes.SoftBurst.toShape(),
-                onClick = {}
+                shape = MaterialShapes.SoftBurst.toShape()
             )
             // yesterday
             SessionCard(
@@ -92,8 +90,7 @@ fun PreviewSessionCard() {
                     tag = "Read",
                     note = null
                 ),
-                shape = MaterialShapes.SoftBurst.toShape(),
-                onClick = {}
+                shape = MaterialShapes.SoftBurst.toShape()
             )
             SessionCard(
                 session = FocusSession(
@@ -103,8 +100,7 @@ fun PreviewSessionCard() {
                     tag = "Focus",
                     note = null
                 ),
-                shape = MaterialShapes.SoftBurst.toShape(),
-                onClick = {}
+                shape = MaterialShapes.SoftBurst.toShape()
             )
             SessionCard(
                 session = FocusSession(
@@ -114,8 +110,7 @@ fun PreviewSessionCard() {
                     tag = "Study",
                     note = "Revising biology"
                 ),
-                shape = MaterialShapes.SoftBurst.toShape(),
-                onClick = {}
+                shape = MaterialShapes.SoftBurst.toShape()
             )
         }
     }
@@ -392,7 +387,7 @@ fun StatsHeroCard(
                 Text(
                     text = value,
                     style = googleSansFlex(
-                        weight = 700,
+                        weight = 800,
                         slant = -10f,
                         width = 112.5f,
                         roundness = 100f,
@@ -413,7 +408,6 @@ fun StatsHeroCard(
 @Composable
 fun SessionCard(
     session: FocusSession,
-    onClick: () -> Unit,
     shape: Shape
 ) {
     val baseColor = getTagColor(session.tag)
@@ -430,7 +424,6 @@ fun SessionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
                 .padding(8.dp), // More breathing room
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -441,8 +434,11 @@ fun SessionCard(
             ) {
                 Text(
                     text = session.tag.uppercase(),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    style = googleSansFlex(
+                        weight = 900,
+                        slant = -10f,
+                        size = 14.sp
+                    ),
                     color = baseColor,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -488,7 +484,7 @@ fun SessionCard(
                     Text(
                         text = "${session.durationMinutes}m",
                         style = googleSansFlex(
-                            weight = 700,
+                            weight = 800,
                             slant = -10f,
                             width = 112.5f,
                             roundness = 100f,
