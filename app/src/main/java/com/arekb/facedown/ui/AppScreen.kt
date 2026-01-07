@@ -2,6 +2,8 @@ package com.arekb.facedown.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -9,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -30,6 +33,7 @@ import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
 import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme.motionScheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -78,6 +82,7 @@ fun AppScreen(
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     val systemBarsInsets = WindowInsets.systemBars.asPaddingValues()
     val cutoutInsets = WindowInsets.displayCutout.asPaddingValues()
+    val motionScheme = motionScheme
 
     val timerState = homeViewModel.timerState.collectAsStateWithLifecycle().value
     val showBottomBar = when (timerState) {
@@ -184,7 +189,6 @@ fun AppScreen(
             NavDisplay(
                 backStack = appState.backStack,
                 onBack = appState::goBack,
-                // TODO: Add a slide in and out animation
                 entryProvider = entryProvider {
 
                     entry<Screen.Timer> {
@@ -194,10 +198,33 @@ fun AppScreen(
                     entry<Screen.Stats.Main> {
                         StatsScreen(
                             contentPadding = contentPadding,
-                            onNavigateToHistory = { appState.navigateTo(Screen.Stats.History) })
+                            onNavigateToHistory = { appState.navigateTo(Screen.Stats.History) }
+                        )
                     }
 
-                    entry<Screen.Stats.History> {
+                    entry<Screen.Stats.History>(
+                        metadata = NavDisplay.transitionSpec {
+                            // Slide new content up, keeping the old content in place underneath
+                            slideInVertically(
+                                initialOffsetY = { it },
+                                animationSpec = motionScheme.defaultSpatialSpec()
+                            ) togetherWith ExitTransition.KeepUntilTransitionsFinished
+                        } + NavDisplay.popTransitionSpec {
+                            // Slide old content down, revealing the new content in place underneath
+                            EnterTransition.None togetherWith
+                                slideOutVertically(
+                                    targetOffsetY = { it },
+                                    animationSpec = motionScheme.defaultSpatialSpec()
+                                )
+                        } + NavDisplay.predictivePopTransitionSpec {
+                            // Slide old content down, revealing the new content in place underneath
+                            EnterTransition.None togetherWith
+                                slideOutVertically(
+                                    targetOffsetY = { it },
+                                    animationSpec = motionScheme.defaultSpatialSpec()
+                                )
+                        }
+                    ) {
                         HistoryScreen(
                             contentPadding = contentPadding,
                             onBackClick = appState::goBack
@@ -209,7 +236,23 @@ fun AppScreen(
                         // SettingsScreen(contentPadding = contentPadding)
                         TypographyShowcase(contentPadding = contentPadding)
                     }
-                }
+                },
+                // TODO: Look into fixing animation stats -> settings
+//                transitionSpec = {
+//                    // Slide in from right when navigating forward
+//                    slideInHorizontally(initialOffsetX = { it }) togetherWith
+//                            slideOutHorizontally(targetOffsetX = { -it })
+//                },
+//                popTransitionSpec = {
+//                    // Slide in from left when navigating back
+//                    slideInHorizontally(initialOffsetX = { -it }) togetherWith
+//                            slideOutHorizontally(targetOffsetX = { it })
+//                },
+//                predictivePopTransitionSpec = {
+//                    // Slide in from left when navigating back
+//                    slideInHorizontally(initialOffsetX = { -it }) togetherWith
+//                            slideOutHorizontally(targetOffsetX = { it })
+//                }
             )
         }
     }

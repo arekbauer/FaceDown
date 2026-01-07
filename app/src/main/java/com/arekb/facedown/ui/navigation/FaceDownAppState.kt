@@ -38,22 +38,25 @@ class FaceDownAppState(
      * "Timer is Base. Others are Overlays. Max depth 2."
      */
     fun navigateToTopLevelDestination(destination: Screen) {
-        if (destination == Screen.Timer) {
-            // Logic: Clear everything down to root
-            if (backStack.size > 1) {
-                // Remove everything after the first element (Timer)
-                while (backStack.size > 1) {
-                    backStack.removeAt(backStack.lastIndex)
-                }
+        // 1. If we are already on this screen, do nothing
+        if (backStack.lastOrNull() == destination) return
+
+        // 2. Check if the destination is already in the history
+        val index = backStack.indexOf(destination)
+
+        if (index != -1) {
+            // CASE: Going BACK to a previous screen (e.g. Timer or Stats)
+            // We pop everything that was added after this screen.
+            // Example: [Timer, Stats, Settings] -> Click Stats -> [Timer, Stats]
+            // This triggers the 'popTransitionSpec' (Slide Right)
+            while (backStack.lastIndex > index) {
+                backStack.removeLast()
             }
         } else {
-            // Logic: Switch Overlay
-            if (backStack.size < 2) {
-                backStack.add(destination)
-            } else {
-                // Replace the top element (Swap Stats <-> Settings)
-                backStack[backStack.lastIndex] = destination
-            }
+            // CASE: Going FORWARD to a new screen
+            // Example: [Timer, Stats] -> Click Settings -> [Timer, Stats, Settings]
+            // This triggers the 'transitionSpec' (Slide Left)
+            backStack.add(destination)
         }
     }
 
