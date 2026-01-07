@@ -28,6 +28,17 @@
     <string name="what_accomplish">What did you accomplish?</string>
     <string name="save_session">Save session</string>
 
+    <string name="day_streak">Day streak</string>
+    <string name="total_focus">Total focus</string>
+    <string name="consistency_grid">Consistency Grid</string>
+    <string name="less">Less</string>
+    <string name="more">More</string>
+    <string name="weekly_snapshot">Weekly Snapshot</string>
+    <string name="recent_sessions">Recent Sessions</string>
+    <string name="see_all">See all</string>
+    <string name="session_history">Session History</string>
+    <string name="error_retry_msg">Error loading, tap to retry</string>
+
     <string name="focus">Focus</string>
     <string name="work">Work</string>
     <string name="study">Study</string>

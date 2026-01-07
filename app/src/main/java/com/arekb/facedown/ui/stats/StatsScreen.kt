@@ -122,7 +122,7 @@ fun StatsScreen(
                     StatsHeroCard(
                         icon = R.drawable.icon_fire_filled,
                         value = "$streak",
-                        label = "Day streak",
+                        label = stringResource(R.string.day_streak),
                         containerColour = MaterialTheme.colorScheme.primaryContainer,
                         contentColour = MaterialTheme.colorScheme.onPrimaryContainer,
                         shape = MaterialShapes.Pill.toShape(),
@@ -132,7 +132,7 @@ fun StatsScreen(
                     StatsHeroCard(
                         icon = R.drawable.icon_hourglass_filled,
                         value = formattedTime,
-                        label = "Total focus",
+                        label = stringResource(R.string.total_focus),
                         containerColour = MaterialTheme.colorScheme.secondaryContainer,
                         contentColour = MaterialTheme.colorScheme.onSecondaryContainer,
                         shape = MaterialShapes.SoftBurst.toShape(),
@@ -151,7 +151,7 @@ fun StatsScreen(
                 val weeklyData by viewModel.weeklyStats.collectAsStateWithLifecycle()
                 Column(modifier = Modifier.padding(8.dp)) {
                     Text(
-                        text = "Weekly Snapshot",
+                        text = stringResource(R.string.weekly_snapshot),
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -165,7 +165,7 @@ fun StatsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Recent Sessions",
+                        text = stringResource(R.string.recent_sessions),
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Spacer(modifier = Modifier.weight(1f))
@@ -173,7 +173,7 @@ fun StatsScreen(
                         onClick = onNavigateToHistory
                     ) {
                         Text(
-                            text = "See all",
+                            text = stringResource(R.string.see_all),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }

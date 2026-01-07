@@ -35,11 +35,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
+import com.arekb.facedown.R
 import com.arekb.facedown.data.stats.HeatmapLevel
 import com.arekb.facedown.ui.stats.HeatmapWeek
 import com.arekb.facedown.ui.theme.FaceDownTheme
@@ -118,7 +120,7 @@ fun ConsistencyCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Consistency Grid",
+                    text = stringResource(R.string.consistency_grid),
                     style = MaterialTheme.typography.titleLarge
                 )
                 // --- LEGEND ---
@@ -299,7 +301,7 @@ fun HeatmapLegend(
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
-            text = "Less",
+            text = stringResource(R.string.less),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -331,7 +333,7 @@ fun HeatmapLegend(
         }
 
         Text(
-            text = "More",
+            text = stringResource(R.string.more),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

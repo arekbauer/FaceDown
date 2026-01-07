@@ -29,11 +29,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.arekb.facedown.R
 import com.arekb.facedown.ui.stats.components.SessionCard
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -61,7 +63,7 @@ fun HistoryScreen(
         bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
         topBar = {
             TopAppBar(
-                title = { Text("Session History", style = MaterialTheme.typography.headlineSmallEmphasized) },
+                title = { Text(stringResource(R.string.session_history), style = MaterialTheme.typography.headlineSmallEmphasized) },
                 navigationIcon = {
                     FilledTonalIconButton(onClick = onBackClick) {
                         Icon(
@@ -147,7 +149,7 @@ fun HistoryScreen(
                     ) {
                         TextButton(onClick = { pagingItems.retry() }) {
                             Text(
-                                text = "Error loading, tap to retry",
+                                text = stringResource(R.string.error_retry_msg),
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
