@@ -68,6 +68,7 @@ import com.arekb.facedown.ui.navigation.Screen
 import com.arekb.facedown.ui.navigation.mainScreens
 import com.arekb.facedown.ui.navigation.rememberFaceDownAppState
 import com.arekb.facedown.ui.settings.SettingsScreen
+import com.arekb.facedown.ui.settings.subscreens.AboutScreen
 import com.arekb.facedown.ui.settings.subscreens.DataSettingsScreen
 import com.arekb.facedown.ui.settings.subscreens.TimerOptionsScreen
 import com.arekb.facedown.ui.stats.HistoryScreen
@@ -259,7 +260,10 @@ fun AppScreen(
 
 
                     entry<Screen.Settings.About> {
-
+                        AboutScreen(
+                            contentPadding = contentPadding,
+                            onBack = appState::goBack
+                        )
                     }
                 },
                 // TODO: Look into fixing animation stats -> settings
