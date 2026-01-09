@@ -30,4 +30,8 @@ interface SessionDao {
     // Fetches sessions in a specific time window
     @Query("SELECT * FROM focus_sessions WHERE timestamp BETWEEN :startTime AND :endTime")
     fun getSessionsInWindow(startTime: Long, endTime: Long): Flow<List<FocusSession>>
+
+    // Deletes all sessions
+    @Query("DELETE FROM focus_sessions")
+    suspend fun deleteAllSessions()
 }

@@ -169,3 +169,59 @@ fun FaceDownSwitchItem(
         }
     )
 }
+
+@Composable
+fun FaceDownListErrorItem(
+    title: String,
+    subtitle: String? = null,
+    icon: Int? = null,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    ListItem(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .clip(
+                RoundedCornerShape(
+                    topStart = 24.dp,
+                    topEnd = 24.dp,
+                    bottomStart = 24.dp,
+                    bottomEnd = 24.dp
+                )
+            )
+            .clickable(
+                interactionSource = interactionSource,
+            ) { onClick() },
+
+        headlineContent = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        },
+        supportingContent = if (subtitle != null) {
+            {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+        } else null,
+        leadingContent = if (icon != null) {
+            {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        } else null,
+        // Red error container
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+        )
+    )
+}

@@ -8,4 +8,5 @@ interface SessionRepository {
     suspend fun logSession(minutes: Int, tag: String, note: String?)
     fun getRecentSessions(): Flow<List<FocusSession>>
     fun getSessionHistoryStream(): Flow<PagingData<FocusSession>>
+    suspend fun clearAllData()
 }

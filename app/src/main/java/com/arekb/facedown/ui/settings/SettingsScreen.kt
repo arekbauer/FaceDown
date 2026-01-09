@@ -53,6 +53,7 @@ fun SettingsScreen(
     contentPadding: PaddingValues,
     viewModel: SettingsViewModel = hiltViewModel(),
     onNavigateToTimerOptions: () -> Unit,
+    onNavigateToData: () -> Unit,
     onNavigateToAbout: () -> Unit
 ) {
     val layoutDirection = LocalLayoutDirection.current
@@ -156,7 +157,7 @@ fun SettingsScreen(
                 title = "Data",
                 subtitle = "Clear history, export",
                 position = ItemPosition.Single, // <--- Standalone bubble
-                onClick = onNavigateToAbout
+                onClick = onNavigateToData
             )
             Spacer(modifier = Modifier.height(24.dp))
 

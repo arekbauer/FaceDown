@@ -38,4 +38,8 @@ class SessionRepositoryImpl @Inject constructor(
         return dao.getRecentSessions()
             .flowOn(Dispatchers.Default)
     }
+
+    override suspend fun clearAllData() {
+        dao.deleteAllSessions()
+    }
 }

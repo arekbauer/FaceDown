@@ -2,6 +2,7 @@ package com.arekb.facedown.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.arekb.facedown.data.session.SessionRepository
 import com.arekb.facedown.data.settings.AppTheme
 import com.arekb.facedown.data.settings.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     // Expose streams for the UI to observe
@@ -47,6 +49,6 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearHistory() {
-        // We will connect this to your SessionRepository later!
+        viewModelScope.launch { sessionRepository.clearAllData() }
     }
 }

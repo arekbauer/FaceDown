@@ -28,6 +28,8 @@ sealed class Screen : NavKey {
         @Serializable
         data object TimerOptions : Settings()
         @Serializable
+        data object Data : Settings()
+        @Serializable
         data object About : Settings()
     }
 }
