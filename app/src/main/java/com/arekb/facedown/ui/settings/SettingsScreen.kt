@@ -97,7 +97,7 @@ fun SettingsScreen(
                 icon = R.drawable.settings_alarm,
                 title = "Timer options",
                 subtitle = "Sounds, haptics",
-                position = ItemPosition.Top, // <--- Top of the group
+                position = ItemPosition.Top,
                 onClick = onNavigateToTimerOptions
             )
 
@@ -109,8 +109,16 @@ fun SettingsScreen(
                     AppTheme.LIGHT -> "Light"
                     AppTheme.DARK -> "Dark"
                 },
-                position = ItemPosition.Bottom, // <--- Bottom of the group
+                position = ItemPosition.Middle,
                 onClick = { showThemeDialog = true }
+            )
+
+            FaceDownListItem(
+                icon = R.drawable.settings_language,
+                title = "App language",
+                subtitle = "System",
+                position = ItemPosition.Bottom,
+                onClick = {  } // TODO: Do language options
             )
 
             Spacer(modifier = Modifier.height(24.dp))
