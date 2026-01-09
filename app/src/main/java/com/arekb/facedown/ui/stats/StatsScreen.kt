@@ -110,7 +110,6 @@ fun StatsScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-
             item {
                 Row(
                     modifier = Modifier

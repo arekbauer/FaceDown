@@ -12,8 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
@@ -69,7 +67,7 @@ fun SettingsScreen(
     var showThemeDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize(),
         bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
         topBar = {
             CenterAlignedTopAppBar(
@@ -87,88 +85,91 @@ fun SettingsScreen(
                 bottom = contentPadding.calculateBottomPadding()
             )
 
-        Column(
+        LazyColumn(
+            contentPadding = effectivePadding,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(effectivePadding)
-                .verticalScroll(rememberScrollState())
         ) {
-            FaceDownListItem(
-                topText = "Preferences",
-                icon = R.drawable.settings_alarm,
-                title = "Timer options",
-                subtitle = "Sounds, haptics",
-                position = ItemPosition.Top,
-                onClick = onNavigateToTimerOptions
-            )
+            item {
+                FaceDownListItem(
+                    topText = "Preferences",
+                    icon = R.drawable.settings_alarm,
+                    title = "Timer options",
+                    subtitle = "Sounds, haptics",
+                    position = ItemPosition.Top,
+                    onClick = onNavigateToTimerOptions
+                )
+                FaceDownListItem(
+                    icon = R.drawable.settings_palette,
+                    title = "App theme",
+                    subtitle = when (currentTheme) {
+                        AppTheme.SYSTEM -> "Default"
+                        AppTheme.LIGHT -> "Light"
+                        AppTheme.DARK -> "Dark"
+                    },
+                    position = ItemPosition.Middle,
+                    onClick = { showThemeDialog = true }
+                )
+                FaceDownListItem(
+                    icon = R.drawable.settings_language,
+                    title = "App language",
+                    subtitle = "System",
+                    position = ItemPosition.Bottom,
+                    onClick = { } // TODO: Do language options
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
-            FaceDownListItem(
-                icon = R.drawable.settings_palette,
-                title = "App theme",
-                subtitle = when (currentTheme) {
-                    AppTheme.SYSTEM -> "Default"
-                    AppTheme.LIGHT -> "Light"
-                    AppTheme.DARK -> "Dark"
-                },
-                position = ItemPosition.Middle,
-                onClick = { showThemeDialog = true }
-            )
+            item {
+                FaceDownListItem(
+                    topText = "Support",
+                    icon = R.drawable.settings_bug,
+                    title = "Report a bug",
+                    subtitle = "Found an issue? Let us know",
+                    position = ItemPosition.Top,
+                    onClick = {
+                        // Replace with your actual Google Form URL
+                        uriHandler.openUri("https://forms.gle/YOUR_FORM_ID")
+                    }
+                )
+                FaceDownListItem(
+                    icon = R.drawable.settings_translate,
+                    title = "Help with translation",
+                    subtitle = "Make FaceDown accessible to everyone",
+                    position = ItemPosition.Bottom,
+                    onClick = {
+                        launchEmailIntent(
+                            context = context,
+                            email = "hello@facedown.app", // Your email
+                            subject = "Contributing to FaceDown Translation"
+                        )
+                    }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
-            FaceDownListItem(
-                icon = R.drawable.settings_language,
-                title = "App language",
-                subtitle = "System",
-                position = ItemPosition.Bottom,
-                onClick = {  } // TODO: Do language options
-            )
+            item {
+                FaceDownListItem(
+                    topText = "Data management",
+                    icon = R.drawable.settings_data,
+                    title = "Data",
+                    subtitle = "Clear history, export",
+                    position = ItemPosition.Single,
+                    onClick = onNavigateToData
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            FaceDownListItem(
-                topText = "Support",
-                icon = R.drawable.settings_bug,
-                title = "Report a bug",
-                subtitle = "Found an issue? Let us know",
-                position = ItemPosition.Top,
-                onClick = {
-                    // Replace with your actual Google Form URL
-                    uriHandler.openUri("https://forms.gle/YOUR_FORM_ID")
-                }
-            )
-            FaceDownListItem(
-                icon = R.drawable.settings_translate,
-                title = "Help with translation",
-                subtitle = "Make FaceDown accessible to everyone",
-                position = ItemPosition.Bottom,
-                onClick = {
-                    launchEmailIntent(
-                        context = context,
-                        email = "hello@facedown.app", // Your email
-                        subject = "Contributing to FaceDown Translation"
-                    )
-                }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            FaceDownListItem(
-                topText = "Data management",
-                icon = R.drawable.settings_data,
-                title = "Data",
-                subtitle = "Clear history, export",
-                position = ItemPosition.Single, // <--- Standalone bubble
-                onClick = onNavigateToData
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-
-            FaceDownListItem(
-                topText = "About Facedown",
-                icon = R.drawable.settings_info,
-                title = "About",
-                subtitle = "Version " + BuildConfig.VERSION_NAME,
-                position = ItemPosition.Single, // <--- Standalone bubble
-                onClick = onNavigateToAbout
-            )
+            item {
+                FaceDownListItem(
+                    topText = "About Facedown",
+                    icon = R.drawable.settings_info,
+                    title = "About",
+                    subtitle = "Version " + BuildConfig.VERSION_NAME,
+                    position = ItemPosition.Single,
+                    onClick = onNavigateToAbout
+                )
+            }
         }
     }
 
