@@ -67,6 +67,7 @@ import com.arekb.facedown.ui.navigation.FaceDownAppState
 import com.arekb.facedown.ui.navigation.Screen
 import com.arekb.facedown.ui.navigation.mainScreens
 import com.arekb.facedown.ui.navigation.rememberFaceDownAppState
+import com.arekb.facedown.ui.settings.SettingsScreen
 import com.arekb.facedown.ui.stats.HistoryScreen
 import com.arekb.facedown.ui.stats.StatsScreen
 
@@ -232,9 +233,19 @@ fun AppScreen(
                     }
 
                     entry<Screen.Settings.Main> {
-                        // TODO: Add your SettingsScreen here
-                        // SettingsScreen(contentPadding = contentPadding)
-                        TypographyShowcase(contentPadding = contentPadding)
+                        SettingsScreen(
+                            contentPadding = contentPadding,
+                            onNavigateToTimerOptions = { appState.navigateTo(Screen.Settings.TimerOptions) },
+                            onNavigateToAbout = { appState.navigateTo(Screen.Settings.About) }
+                        )
+                    }
+
+                    entry<Screen.Settings.TimerOptions> {
+
+                    }
+
+                    entry<Screen.Settings.About> {
+
                     }
                 },
                 // TODO: Look into fixing animation stats -> settings

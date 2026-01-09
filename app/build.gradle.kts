@@ -38,6 +38,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
     buildFeatures {
         compose = true
@@ -80,6 +81,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.paging.compose)
     implementation(libs.androidx.room.paging)
+
+    implementation(libs.androidx.datastore.preferences)
 
     // Nav 3
     implementation(libs.androidx.navigation3.ui)

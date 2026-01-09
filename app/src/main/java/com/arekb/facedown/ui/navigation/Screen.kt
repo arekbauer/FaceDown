@@ -25,6 +25,9 @@ sealed class Screen : NavKey {
         override val navSection: Screen get() = Main
         @Serializable
         data object Main : Settings()
-        // Future: @Serializable data object Appearance : Screen()
+        @Serializable
+        data object TimerOptions : Settings()
+        @Serializable
+        data object About : Settings()
     }
 }
