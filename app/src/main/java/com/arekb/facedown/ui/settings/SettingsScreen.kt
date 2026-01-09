@@ -95,7 +95,7 @@ fun SettingsScreen(
             FaceDownListItem(
                 topText = "Preferences",
                 icon = R.drawable.settings_alarm,
-                title = "Alarm",
+                title = "Timer options",
                 subtitle = "Sounds, haptics",
                 position = ItemPosition.Top, // <--- Top of the group
                 onClick = onNavigateToTimerOptions
@@ -182,7 +182,7 @@ fun ThemeSelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text("Choose Theme") },
+        title = { Text("Choose theme") },
         text = {
             Column {
                 AppTheme.entries.forEach { theme ->
@@ -203,7 +203,7 @@ fun ThemeSelectionDialog(
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = when (theme) {
-                                AppTheme.SYSTEM -> "System Default"
+                                AppTheme.SYSTEM -> "System default"
                                 AppTheme.LIGHT -> "Light"
                                 AppTheme.DARK -> "Dark"
                             }

@@ -2,10 +2,14 @@ package com.arekb.facedown.ui
 
 import android.content.Context
 import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import androidx.core.net.toUri
 import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.data.timer.ServiceConstants
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 // Helper: Format Seconds to MM:SS
 fun formatTime(seconds: Long): String {
@@ -37,6 +41,19 @@ fun launchEmailIntent(context: Context, email: String, subject: String) {
     try {
         context.startActivity(intent)
     } catch (e: Exception) {
-        // Fallback: copy email to clipboard or show toast
+        // TODO: Fallback: copy email to clipboard or show toast
+    }
+}
+
+suspend fun getRingtoneName(context: Context, uriString: String?): String = withContext(Dispatchers.IO) {
+    if (uriString.isNullOrEmpty()) return@withContext "Default Notification"
+
+    try {
+        val uri = Uri.parse(uriString)
+        val ringtone = RingtoneManager.getRingtone(context, uri)
+        ringtone?.getTitle(context) ?: "Unknown"
+    } catch (e: Exception) {
+        "Unknown"
+        // TODO: Fallback needed
     }
 }

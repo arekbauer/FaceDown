@@ -13,13 +13,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
@@ -40,6 +41,14 @@ fun FaceDownListItem(
     subtitle: String? = null,
     icon: Int? = null,
     position: ItemPosition = ItemPosition.Single,
+    trailingContent: @Composable (() -> Unit)? = {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        )
+    },
     onClick: () -> Unit
 ) {
     // 1. Interaction State (Pressed vs Idle)
@@ -61,10 +70,9 @@ fun FaceDownListItem(
         if (topText != null) {
             Text(
                 text = topText,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -112,14 +120,7 @@ fun FaceDownListItem(
                 )
             }
         } else null,
-        trailingContent = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            )
-        },
+        trailingContent = trailingContent,
         // Optional: Make the background slightly distinct to show the grouping
         colors = ListItemDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer, // Slight gray/tone
@@ -130,4 +131,41 @@ fun FaceDownListItem(
     if (position != ItemPosition.Bottom && position != ItemPosition.Single) {
         Spacer(modifier = Modifier.padding(bottom = 2.dp))
     }
+}
+
+@Composable
+fun FaceDownSwitchItem(
+    topText: String? = null,
+    title: String,
+    subtitle: String? = null,
+    icon: Int? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    position: ItemPosition = ItemPosition.Single
+) {
+    // Reuse the FaceDownListItem logic but override the trailing content
+    // We can't reuse the exact composable if trailingContent is hardcoded,
+    // so we copy the shape/animation logic or refactor the original to accept content.
+    // Assuming we refactor FaceDownListItem to accept `trailingContent`:
+
+    FaceDownListItem(
+        topText = topText,
+        title = title,
+        subtitle = subtitle,
+        icon = icon,
+        position = position,
+        onClick = { onCheckedChange(!checked) }, // Clicking row toggles switch
+        trailingContent = {
+            Switch(
+                checked = checked,
+                onCheckedChange = null, // Handled by row click
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.background,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                )
+            )
+        }
+    )
 }
