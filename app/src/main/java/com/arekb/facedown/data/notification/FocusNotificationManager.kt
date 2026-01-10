@@ -62,7 +62,6 @@ class FocusNotificationManager(private val context: Context) {
     /**
      * Android 16+ System-Rendered Progress
      */
-    // TODO: Redo notification colours and progress bar
     private fun applyModernProgress(
         builder: NotificationCompat.Builder,
         state: TimerState,
@@ -73,13 +72,13 @@ class FocusNotificationManager(private val context: Context) {
 
         when (state) {
             is TimerState.Running -> {
-                builder.setContentTitle("Focus Active")
-                builder.setContentText("Keep your phone face down")
+                builder.setContentTitle("Focusing...")
+                builder.setContentText("Keep phone face down")
 
                 // Add the focus segment
                 style.addProgressSegment(
                     NotificationCompat.ProgressStyle.Segment(totalMillis.toInt())
-                        .setColor(context.getColor(R.color.white))
+                        .setColor(context.getColor(R.color.ocean_blue))
                 )
 
                 // setWhen + setProgress allows the System UI to animate the countdown
@@ -88,13 +87,13 @@ class FocusNotificationManager(private val context: Context) {
                 builder.setShortCriticalText(formatMillis(remainingMillis))
             }
             is TimerState.GracePeriod -> {
-                builder.setContentTitle("Focus Active")
-                builder.setContentText("Put your phone down!")
+                builder.setContentTitle("Resume focus!")
+                builder.setContentText("Flip phone back")
 
                 // Add the focus segment
                 style.addProgressSegment(
                     NotificationCompat.ProgressStyle.Segment(totalMillis.toInt())
-                        .setColor(context.getColor(R.color.purple_500))
+                        .setColor(context.getColor(R.color.error_red))
                 )
 
                 // setWhen + setProgress allows the System UI to animate the countdown
@@ -103,13 +102,13 @@ class FocusNotificationManager(private val context: Context) {
                 builder.setShortCriticalText(formatMillis(remainingMillis))
             }
             is TimerState.Paused -> {
-                builder.setContentTitle("The timer is paused")
-                builder.setContentText("Place phone down to resume")
+                builder.setContentTitle("Timer paused")
+                builder.setContentText("Flip to resume")
 
                 // In Grace/Pause, we show the segment but stop the "playhead" progress
                 style.addProgressSegment(
                     NotificationCompat.ProgressStyle.Segment(totalMillis.toInt())
-                        .setColor(context.getColor(R.color.teal_700)) // Use a muted color for pause
+                        .setColor(context.getColor(R.color.slate_grey))
                 )
                 builder.setStyle(style.setProgress((totalMillis - remainingMillis).toInt()))
                 builder.setShortCriticalText(formatMillis(remainingMillis))

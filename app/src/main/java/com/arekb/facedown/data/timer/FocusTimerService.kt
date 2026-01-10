@@ -109,17 +109,18 @@ class FocusTimerService : Service() {
         // 3. Update UI to Paused State
         val remainingSeconds = storedDurationMillis / 1000
         val totalSeconds = storedTotalDurationMillis / 1000
+        val currentProgress = 1f - (remainingSeconds.toFloat() / totalSeconds.toFloat())
 
         TimerRepository.updateState(
             TimerState.Paused(
                 remainingSeconds = remainingSeconds,
                 totalSeconds = totalSeconds,
-                currentProgress = 1f - (remainingSeconds.toFloat() / totalSeconds.toFloat())
+                currentProgress = currentProgress
             )
         )
 
         // 4. Update Notification
-        updateForegroundNotification(TimerState.GracePeriod(GRACE_LIMIT, (remainingSeconds/1000)))
+        updateForegroundNotification(TimerState.Paused(remainingSeconds, totalSeconds, currentProgress))
     }
 
     private fun tempPause() {

@@ -9,4 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="leaf_green">#5BA804</color>
     <color name="mint_green">#ADEBB3</color>
+    <color name="ocean_blue">#FF0091EA</color>
+    <color name="error_red">#FFB3261E</color>
+    <color name="slate_grey">#FF78909C</color>
 </resources>
