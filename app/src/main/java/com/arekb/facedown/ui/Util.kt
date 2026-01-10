@@ -3,7 +3,6 @@ package com.arekb.facedown.ui
 import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Build
 import androidx.core.net.toUri
 import com.arekb.facedown.data.timer.FocusTimerService
@@ -49,7 +48,7 @@ suspend fun getRingtoneName(context: Context, uriString: String?): String = with
     if (uriString.isNullOrEmpty()) return@withContext "Default Notification"
 
     try {
-        val uri = Uri.parse(uriString)
+        val uri = uriString.toUri()
         val ringtone = RingtoneManager.getRingtone(context, uri)
         ringtone?.getTitle(context) ?: "Unknown"
     } catch (e: Exception) {

@@ -315,7 +315,7 @@ fun TimerSessionView(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 PresetButtonGroup(
-                    presets = listOf(5, 10, 15, 25),
+                    presets = listOf(1, 10, 15, 25), // TODO: Change back to 5 mins
                     currentDuration = selectedDuration,
                     onDurationChange = onDurationChange,
                 )

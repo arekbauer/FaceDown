@@ -22,7 +22,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,10 +56,6 @@ fun SettingsScreen(
     val layoutDirection = LocalLayoutDirection.current
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-
-    // Observe Theme for the subtitle
     val currentTheme by viewModel.currentTheme.collectAsStateWithLifecycle()
 
     // Local state for the Theme Dialog
@@ -143,7 +138,7 @@ fun SettingsScreen(
                     onClick = {
                         launchEmailIntent(
                             context = context,
-                            email = "hello@facedown.app", // Your email
+                            email = "hello@facedown.app", // TODO: Replace with my email
                             subject = "Contributing to FaceDown Translation"
                         )
                     },

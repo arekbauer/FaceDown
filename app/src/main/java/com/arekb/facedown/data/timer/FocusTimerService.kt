@@ -7,11 +7,13 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import com.arekb.facedown.MainActivity
 import com.arekb.facedown.R
 import com.arekb.facedown.data.dnd.DoNotDisturbManager
 import com.arekb.facedown.data.notification.FocusNotificationManager
 import com.arekb.facedown.data.sensor.AccelerometerRepository
+import com.arekb.facedown.data.settings.SettingsRepository
 import com.arekb.facedown.data.timer.ServiceConstants.GRACE_LIMIT
 import com.arekb.facedown.data.timer.ServiceConstants.STARTING_COUNTDOWN
 import com.arekb.facedown.domain.audio.AudioPlayer
@@ -26,6 +28,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -51,6 +54,7 @@ class FocusTimerService : Service() {
     @Inject lateinit var dndManager: DoNotDisturbManager
     @Inject lateinit var audioPlayer: AudioPlayer
     @Inject lateinit var notificationManager: FocusNotificationManager
+    @Inject lateinit var settingsRepository: SettingsRepository
 
     // Service Lifecycle Scope
     private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -239,14 +243,37 @@ class FocusTimerService : Service() {
         val minutes = (storedTotalDurationMillis / 1000 / 60).toInt()
         TimerRepository.updateState(TimerState.Completed(minutes))
 
-        try {
-            // OPTION A: The System Default Alarm (Production Ready)
-            val alarmUri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) // Fallback
+        serviceScope.launch {
+            val soundEnabled = settingsRepository.soundEnabled.first()
 
-            audioPlayer.playAscendingAlarm(alarmUri)
-        } catch (e: Exception) {
-            e.printStackTrace()
+            // Only play if sound is enabled
+            if (soundEnabled) {
+                try {
+                    // Get the current snapshot of the setting
+                    val savedUriString = settingsRepository.timerSoundUri.first()
+
+                    val alarmUri: Uri = if (!savedUriString.isNullOrEmpty()) {
+                        savedUriString.toUri()
+                    } else {
+                        // Fallback to system default if user never selected one
+                        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                    }
+
+                    // Play
+                    audioPlayer.playAscendingAlarm(alarmUri)
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    // Ultimate fallback safety: play default without crashing
+                    try {
+                        val fallback = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                        audioPlayer.playAscendingAlarm(fallback)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
         }
 
         // C. The "Stop" Monitor
