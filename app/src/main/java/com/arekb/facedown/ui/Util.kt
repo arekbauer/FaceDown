@@ -1,9 +1,12 @@
 package com.arekb.facedown.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
+import android.widget.Toast
 import androidx.core.net.toUri
 import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.data.timer.ServiceConstants
@@ -39,20 +42,20 @@ fun launchEmailIntent(context: Context, email: String, subject: String) {
     // Safety check: ensure there is an app to handle it
     try {
         context.startActivity(intent)
-    } catch (e: Exception) {
-        // TODO: Fallback: copy email to clipboard or show toast
+    } catch (_: Exception) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("Support Email", email)
+        clipboard.setPrimaryClip(clip)
+
+        // Tell the user
+        Toast.makeText(context, "Email copied to clipboard", Toast.LENGTH_SHORT).show()
     }
 }
 
 suspend fun getRingtoneName(context: Context, uriString: String?): String = withContext(Dispatchers.IO) {
     if (uriString.isNullOrEmpty()) return@withContext "Default Notification"
 
-    try {
-        val uri = uriString.toUri()
-        val ringtone = RingtoneManager.getRingtone(context, uri)
-        ringtone?.getTitle(context) ?: "Unknown"
-    } catch (e: Exception) {
-        "Unknown"
-        // TODO: Fallback needed
-    }
+    val uri = uriString.toUri()
+    val ringtone = RingtoneManager.getRingtone(context, uri)
+    ringtone?.getTitle(context) ?: "Unknown"
 }
