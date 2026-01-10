@@ -34,4 +34,8 @@ interface SessionDao {
     // Deletes all sessions
     @Query("DELETE FROM focus_sessions")
     suspend fun deleteAllSessions()
+
+    // Gets all sessions (for exporting)
+    @Query("SELECT * FROM focus_sessions")
+    suspend fun getAllSessions(): List<FocusSession>
 }

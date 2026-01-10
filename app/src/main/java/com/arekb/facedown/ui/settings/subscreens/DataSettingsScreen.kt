@@ -1,6 +1,9 @@
 package com.arekb.facedown.ui.settings.subscreens
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -21,10 +24,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,12 +56,29 @@ fun DataSettingsScreen(
 ) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // State for the "Are you sure?" dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri: Uri? ->
+        // This runs after the user picks a location and filename
+        if (uri != null) {
+            viewModel.performExport(uri)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
         topBar = {
             LargeFlexibleTopAppBar(
@@ -86,8 +109,8 @@ fun DataSettingsScreen(
                 icon = R.drawable.settings_export,
                 position = ItemPosition.Single,
                 onClick = {
-                    // TODO: Export data
-                    Toast.makeText(context, "Coming in V1.1!", Toast.LENGTH_SHORT).show()
+                    val fileName = "FaceDown_Stats_${System.currentTimeMillis()}.csv"
+                    exportLauncher.launch(fileName)
                 },
                 trailingContent = null
             )

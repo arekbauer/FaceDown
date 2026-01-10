@@ -84,6 +84,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.paging.compose)
     implementation(libs.androidx.room.paging)
+    implementation(libs.gson)
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.play.services.oss.licenses)
