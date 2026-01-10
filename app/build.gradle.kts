@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    id("com.google.android.gms.oss-licenses-plugin")
 }
 
 android {
@@ -83,6 +84,7 @@ dependencies {
     implementation(libs.androidx.room.paging)
 
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.play.services.oss.licenses)
 
     // Nav 3
     implementation(libs.androidx.navigation3.ui)

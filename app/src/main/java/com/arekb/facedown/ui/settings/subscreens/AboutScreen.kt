@@ -2,6 +2,7 @@ package com.arekb.facedown.ui.settings.subscreens
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -58,6 +59,18 @@ fun AboutScreen(
         }
     }
 
+    fun launchOssLicenses() {
+        try {
+            val intent = Intent(context, Class.forName("com.google.android.gms.oss.licenses.OssLicensesMenuActivity"))
+            intent.putExtra("title", "Open source licenses")
+
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            // This catches crashes if the plugin/library isn't properly synced
+            Toast.makeText(context, "License info not available", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
@@ -111,7 +124,7 @@ fun AboutScreen(
                 title = "Open source licenses",
                 icon = R.drawable.settings_license,
                 position = ItemPosition.Bottom,
-                onClick = { }
+                onClick = { launchOssLicenses() }
             )
 
             Spacer(modifier = Modifier.height(16.dp))

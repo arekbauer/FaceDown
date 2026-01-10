@@ -5,4 +5,5 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     id("com.google.devtools.ksp") version "2.3.4" apply false
     id("com.google.dagger.hilt.android") version "2.57.2" apply false
+    id("com.google.android.gms.oss-licenses-plugin") version("0.10.7") apply false
 }
