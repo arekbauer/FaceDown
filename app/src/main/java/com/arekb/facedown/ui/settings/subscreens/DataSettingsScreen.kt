@@ -80,22 +80,25 @@ fun DataSettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             FaceDownListItem(
+                topText = "Export data",
                 title = "Export to CSV",
                 subtitle = "Save your session logs",
-                icon = R.drawable.settings_bug,
+                icon = R.drawable.settings_export,
                 position = ItemPosition.Single,
                 onClick = {
-                    // V1 Placeholder: Just show a toast
+                    // TODO: Export data
                     Toast.makeText(context, "Coming in V1.1!", Toast.LENGTH_SHORT).show()
-                }
+                },
+                trailingContent = null
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             FaceDownListErrorItem(
+                topText = "Delete data",
                 title = "Clear history",
                 subtitle = "Delete all sessions permanently",
-                icon = R.drawable.settings_bug,
+                icon = R.drawable.settings_delete,
                 onClick = { showDeleteDialog = true }
             )
         }

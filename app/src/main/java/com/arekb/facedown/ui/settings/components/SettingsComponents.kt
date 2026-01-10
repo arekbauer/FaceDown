@@ -172,12 +172,23 @@ fun FaceDownSwitchItem(
 
 @Composable
 fun FaceDownListErrorItem(
+    topText: String? = null,
     title: String,
     subtitle: String? = null,
     icon: Int? = null,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+
+    if (topText != null) {
+        Text(
+            text = topText,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+        )
+    }
+    Spacer(Modifier.height(8.dp))
 
     ListItem(
         modifier = Modifier

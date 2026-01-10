@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -83,15 +81,16 @@ fun AboutScreen(
                 .padding(bottom = contentPadding.calculateBottomPadding())
                 .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             FaceDownListItem(
                 topText = "Support me",
                 title = "Rate FaceDown",
                 subtitle = "Leave a review on the Play Store",
-                icon = R.drawable.settings_language,
+                icon = R.drawable.settings_rate,
                 position = ItemPosition.Single,
-                onClick = { launchPlayStore() }
+                onClick = { launchPlayStore() },
+                trailingContent = null
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -99,59 +98,35 @@ fun AboutScreen(
             FaceDownListItem(
                 topText = "Legal",
                 title = "Privacy policy",
-                icon = R.drawable.settings_language,
+                icon = R.drawable.settings_privacy,
                 position = ItemPosition.Top,
                 onClick = {
                     // Replace with your actual hosted policy URL
                     uriHandler.openUri("https://your-privacy-policy-url.com")
-                }
+                },
+                trailingContent = null
             )
 
             FaceDownListItem(
                 title = "Open source licenses",
-                icon = R.drawable.settings_language,
+                icon = R.drawable.settings_license,
                 position = ItemPosition.Bottom,
                 onClick = { }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // 3. Footer (Version & Credit)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // App Icon (Optional)
-                Icon(
-                    painter = painterResource(R.drawable.ic_launcher_foreground), // Replace with App Logo resource if you have one
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "FaceDown",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
                 Text(
                     text = "Version ${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "Made by Arek",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

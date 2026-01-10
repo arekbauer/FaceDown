@@ -108,14 +108,16 @@ fun SettingsScreen(
                         AppTheme.DARK -> "Dark"
                     },
                     position = ItemPosition.Middle,
-                    onClick = { showThemeDialog = true }
+                    onClick = { showThemeDialog = true },
+                    trailingContent = null
                 )
                 FaceDownListItem(
                     icon = R.drawable.settings_language,
                     title = "App language",
                     subtitle = "System",
                     position = ItemPosition.Bottom,
-                    onClick = { } // TODO: Do language options
+                    onClick = { }, // TODO: Do language options
+                    trailingContent = null
                 )
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -130,7 +132,8 @@ fun SettingsScreen(
                     onClick = {
                         // Replace with your actual Google Form URL
                         uriHandler.openUri("https://forms.gle/YOUR_FORM_ID")
-                    }
+                    },
+                    trailingContent = null
                 )
                 FaceDownListItem(
                     icon = R.drawable.settings_translate,
@@ -143,7 +146,8 @@ fun SettingsScreen(
                             email = "hello@facedown.app", // Your email
                             subject = "Contributing to FaceDown Translation"
                         )
-                    }
+                    },
+                    trailingContent = null
                 )
                 Spacer(modifier = Modifier.height(24.dp))
             }

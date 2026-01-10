@@ -115,6 +115,7 @@ fun TimerOptionsScreen(
 
             // 1. Master Switch
             FaceDownSwitchItem(
+                topText = "Configurations",
                 title = "Play sound",
                 subtitle = "When timer finishes",
                 icon = R.drawable.settings_timer_sound,
@@ -145,12 +146,12 @@ fun TimerOptionsScreen(
                         ringtoneLauncher.launch(intent)
                     }
                 }
-                // Optional: visual dimming if disabled
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             FaceDownSwitchItem(
+                topText = "Haptics",
                 title = "Vibration",
                 subtitle = "Vibrate when timer finishes",
                 icon = R.drawable.settings_timer_vibrate,
