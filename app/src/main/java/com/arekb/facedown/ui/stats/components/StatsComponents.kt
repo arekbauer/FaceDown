@@ -406,6 +406,34 @@ fun StatsHeroCard(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
+fun EmptyHistoryMessage() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 2. Friendly Text
+        Text(
+            text = "No sessions yet",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text(
+            text = "Your focus history will appear here",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
 fun SessionCard(
     session: FocusSession,
     shape: Shape

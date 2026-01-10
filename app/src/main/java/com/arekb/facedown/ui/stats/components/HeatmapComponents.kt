@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -135,7 +136,7 @@ fun ConsistencyCard(
 
             ResponsiveHeatmap(
                 weeks = weeks,
-                targetSquareSize = 16.dp
+                targetSquareSize = 18.dp
             )
         }
     }
@@ -145,7 +146,7 @@ fun ConsistencyCard(
 fun ResponsiveHeatmap(
     weeks: List<HeatmapWeek>,
     modifier: Modifier = Modifier,
-    targetSquareSize: Dp = 16.dp,
+    targetSquareSize: Dp = 18.dp,
     style: HeatmapStyle = HeatmapStyle()
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
@@ -276,11 +277,12 @@ private fun WeekCanvasColumn(
 
             Text(
                 text = labelText,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 softWrap = false,
-                overflow = TextOverflow.Visible
+                overflow = TextOverflow.Visible,
+                modifier = Modifier.offset(x = (-3).dp)
             )
         }
     }

@@ -127,10 +127,10 @@ fun SettingsScreen(
                     topText = "Support",
                     icon = R.drawable.settings_bug,
                     title = "Report a bug",
-                    subtitle = "Found an issue? Let us know",
+                    subtitle = "Found an issue? Let me know",
                     position = ItemPosition.Top,
                     onClick = {
-                        // Replace with your actual Google Form URL
+                        // TODO: Replace with your actual Google Form URL
                         uriHandler.openUri("https://forms.gle/YOUR_FORM_ID")
                     },
                     trailingContent = null
@@ -157,7 +157,7 @@ fun SettingsScreen(
                     topText = "Data management",
                     icon = R.drawable.settings_data,
                     title = "Data",
-                    subtitle = "Clear history, export",
+                    subtitle = "Export, delete",
                     position = ItemPosition.Single,
                     onClick = onNavigateToData
                 )

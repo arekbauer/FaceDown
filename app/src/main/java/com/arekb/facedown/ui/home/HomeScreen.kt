@@ -213,7 +213,7 @@ fun HomeScreen(
     if (showDndDialog) {
         AlertDialog(
             onDismissRequest = { showDndDialog = false },
-            title = { Text("Permission Required") },
+            title = { Text("Permission required") },
             text = {
                 Text("To automatically silence notifications while you focus, FaceDown needs 'Do Not Disturb' access.\n\nPlease grant this permission on the next screen.")
             },
@@ -225,7 +225,7 @@ fun HomeScreen(
                         context.startActivity(intent)
                     }
                 ) {
-                    Text("Open Settings")
+                    Text("Open settings")
                 }
             },
             dismissButton = {

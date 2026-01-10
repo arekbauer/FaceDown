@@ -36,6 +36,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.arekb.facedown.R
+import com.arekb.facedown.ui.stats.components.EmptyHistoryMessage
 import com.arekb.facedown.ui.stats.components.SessionCard
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -92,6 +93,19 @@ fun HistoryScreen(
                 .padding(horizontal = 16.dp),
             //horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val refreshState = pagingItems.loadState.refresh
+
+            // Only show if we are NOT loading and the list is actually empty
+            if (refreshState is LoadState.NotLoading && pagingItems.itemCount == 0) {
+                item {
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        EmptyHistoryMessage()
+                    }
+                }
+            }
 
             items(
                 count = pagingItems.itemCount,

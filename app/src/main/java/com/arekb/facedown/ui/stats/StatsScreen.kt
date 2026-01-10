@@ -22,7 +22,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.toShape
@@ -34,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,9 +40,9 @@ import com.arekb.facedown.BuildConfig
 import com.arekb.facedown.R
 import com.arekb.facedown.ui.stats.components.AnimatedWeeklyChart
 import com.arekb.facedown.ui.stats.components.ConsistencyCard
+import com.arekb.facedown.ui.stats.components.EmptyHistoryMessage
 import com.arekb.facedown.ui.stats.components.SessionCard
 import com.arekb.facedown.ui.stats.components.StatsHeroCard
-import com.arekb.facedown.ui.theme.FaceDownTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -160,7 +158,8 @@ fun StatsScreen(
             }
 
             item {
-                Row(modifier = Modifier.padding(8.dp),
+                Row(
+                    modifier = Modifier.padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -178,29 +177,21 @@ fun StatsScreen(
                     }
                 }
             }
+            if (sessions.isEmpty()) {
+                item { EmptyHistoryMessage() }
+            } else {
+                itemsIndexed(
+                    items = sessions,
+                    key = { _, session -> session.id }
+                ) { index, session ->
+                    val currentShape = iconShape[index % iconShape.size]
 
-            itemsIndexed(
-                items = sessions,
-                key = { _, session -> session.id}
-            ) { index, session ->
-                val currentShape = iconShape[index % iconShape.size]
-
-                SessionCard(
-                    session = session,
-                    shape = currentShape.toShape()
-                )
+                    SessionCard(
+                        session = session,
+                        shape = currentShape.toShape()
+                    )
+                }
             }
-        }
-    }
-}
-
-@Preview(name = "Stats Screen", showBackground = true, device = "spec:width=411dp,height=891dp")
-@Composable
-fun StatsScreenPreview()
-{
-    FaceDownTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            StatsScreen(contentPadding = PaddingValues(16.dp), onNavigateToHistory = {})
         }
     }
 }
