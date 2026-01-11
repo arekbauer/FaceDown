@@ -1,11 +1,16 @@
 package com.arekb.facedown.data.timer
 
+import android.Manifest
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Build
 import android.os.IBinder
+import android.os.VibrationEffect
+import android.os.Vibrator
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import com.arekb.facedown.MainActivity
@@ -55,6 +60,7 @@ class FocusTimerService : Service() {
     @Inject lateinit var audioPlayer: AudioPlayer
     @Inject lateinit var notificationManager: FocusNotificationManager
     @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject lateinit var vibrator: Vibrator
 
     // Service Lifecycle Scope
     private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -246,6 +252,7 @@ class FocusTimerService : Service() {
 
         serviceScope.launch {
             val soundEnabled = settingsRepository.soundEnabled.first()
+            val isHapticsOn = settingsRepository.hapticsEnabled.first()
 
             // Only play if sound is enabled
             if (soundEnabled) {
@@ -275,6 +282,10 @@ class FocusTimerService : Service() {
                     }
                 }
             }
+
+            if (isHapticsOn) {
+                triggerVibrationPattern()
+            }
         }
 
         // C. The "Stop" Monitor
@@ -291,14 +302,34 @@ class FocusTimerService : Service() {
         }
     }
 
+    @RequiresPermission(Manifest.permission.VIBRATE)
+    private fun triggerVibrationPattern() {
+        if (vibrator.hasVibrator()) {
+            val timings = longArrayOf(0, 500, 500, 500, 500)
+            val amplitudes = intArrayOf(0, 150, 0, 150, 0)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val effect = VibrationEffect.createWaveform(timings, amplitudes, 0)
+                vibrator.vibrate(effect)
+            } else {
+                // Legacy API
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(timings, 0)
+            }
+        }
+    }
+
     private fun finishAndCleanup() {
         // 1. Cut the Sound
         audioPlayer.stop()
 
-        // 2. Restore System Settings
+        // 2. Cur the vibration
+        vibrator.cancel()
+
+        // 3. Restore System Settings
         dndManager.turnOffDnd()
 
-        // 3. Kill Service
+        // 4. Kill Service
         stopSelf()
     }
 
