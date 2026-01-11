@@ -3,7 +3,6 @@ package com.arekb.facedown.di
 import android.app.NotificationManager
 import android.content.Context
 import android.hardware.SensorManager
-import android.os.Build
 import android.os.Vibrator
 import android.os.VibratorManager
 import dagger.Module
@@ -32,12 +31,7 @@ object SystemModule {
     @Provides
     @Singleton
     fun provideVibrator(@ApplicationContext context: Context): Vibrator {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            vibratorManager.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        }
+        val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        return vibratorManager.defaultVibrator
     }
 }

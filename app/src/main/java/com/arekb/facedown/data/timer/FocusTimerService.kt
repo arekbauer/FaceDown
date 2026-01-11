@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
@@ -37,7 +38,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 object ServiceConstants {
@@ -78,7 +78,18 @@ class FocusTimerService : Service() {
         val action = intent?.action
 
         if (action == ServiceConstants.ACTION_START) {
-            startForeground(1, createNotification("Focus Session Active"))
+            if (Build.VERSION.SDK_INT >= 34) {
+                startForeground(
+                    1,
+                    createNotification("Focus Session Active"),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                )
+            } else {
+                startForeground(
+                    1,
+                    createNotification("Focus Session Active")
+                )
+            }
         }
 
         when (action) {
@@ -89,7 +100,7 @@ class FocusTimerService : Service() {
             }
             ServiceConstants.ACTION_PAUSE -> pauseTimer()
 
-            ServiceConstants.ACTION_RESUME -> resumeTimer()
+            ServiceConstants.ACTION_RESUME -> resumeTimer(skipCountDown = false)
 
             ServiceConstants.ACTION_RESET -> {
                 timerJob?.cancel()
@@ -236,6 +247,7 @@ class FocusTimerService : Service() {
     }
 
     // TODO: Implement this at a later date
+    /*
     private fun calculateMaxPauses(durationMillis: Long): Int {
         val durationMinutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis)
         return when {
@@ -244,6 +256,7 @@ class FocusTimerService : Service() {
             else -> 3
         }
     }
+     */
 
     private fun triggerAlarmSequence() {
         // Calculate minutes from storedTotalDurationMillis
@@ -308,14 +321,8 @@ class FocusTimerService : Service() {
             val timings = longArrayOf(0, 500, 500, 500, 500)
             val amplitudes = intArrayOf(0, 150, 0, 150, 0)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val effect = VibrationEffect.createWaveform(timings, amplitudes, 0)
-                vibrator.vibrate(effect)
-            } else {
-                // Legacy API
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(timings, 0)
-            }
+            val effect = VibrationEffect.createWaveform(timings, amplitudes, 0)
+            vibrator.vibrate(effect)
         }
     }
 
@@ -365,7 +372,9 @@ class FocusTimerService : Service() {
         notificationManager.createNotificationChannel(channel)
     }
 
-    private fun createNotification(content: String): android.app.Notification {
+    private fun createNotification(@Suppress("SameParameterValue", "SameParameterValue",
+        "SameParameterValue"
+    ) content: String): android.app.Notification {
         val launchIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }

@@ -34,10 +34,6 @@ class HomeViewModel @Inject constructor(
         _selectedDuration.value = minutes
     }
 
-    fun resetTimer() {
-
-    }
-
     fun hasDndPermission(): Boolean {
         return dndManager.hasPermission()
     }
@@ -45,8 +41,6 @@ class HomeViewModel @Inject constructor(
     fun saveSession(minutes: Int, tag: String, note: String?) {
         viewModelScope.launch {
             sessionRepository.logSession(minutes, tag, note)
-            // After saving, we reset the app to the start screen
-            resetTimer()
         }
     }
 }

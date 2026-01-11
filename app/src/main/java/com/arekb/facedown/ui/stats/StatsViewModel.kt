@@ -24,8 +24,8 @@ import java.time.format.DateTimeFormatter
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(
-    private val statsRepository: StatsRepository,
-    private val sessionRepository: SessionRepository,
+    statsRepository: StatsRepository,
+    sessionRepository: SessionRepository,
     private val sessionInjector: MockSessionInjector
 ) : ViewModel() {
 

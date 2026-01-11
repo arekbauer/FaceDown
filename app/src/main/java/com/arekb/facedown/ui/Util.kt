@@ -5,7 +5,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
-import android.os.Build
 import android.widget.Toast
 import androidx.core.net.toUri
 import com.arekb.facedown.data.timer.FocusTimerService
@@ -26,7 +25,7 @@ fun sendTimerCommand(context: Context, action: String, minutes: Int = 0) {
         if (minutes > 0) putExtra("DURATION", minutes)
     }
     // Only use startForegroundService for the actual START command
-    if (action == ServiceConstants.ACTION_START && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    if (action == ServiceConstants.ACTION_START) {
         context.startForegroundService(intent)
     } else {
         context.startService(intent)

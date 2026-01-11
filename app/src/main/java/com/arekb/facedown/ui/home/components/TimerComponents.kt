@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -300,8 +301,12 @@ fun TimerControlBar(
     onStop: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val config = LocalConfiguration.current
-    val responsiveHeight = (config.screenHeightDp.dp * 0.10f).coerceIn(56.dp, 88.dp)
+    val windowInfo = LocalWindowInfo.current
+    val density = LocalDensity.current
+    val screenHeightDp = remember(windowInfo, density) {
+        with(density) { windowInfo.containerSize.height.toDp() }
+    }
+    val responsiveHeight = (screenHeightDp * 0.10f).coerceIn(56.dp, 88.dp)
     val interactionSources = remember { listOf(MutableInteractionSource(), MutableInteractionSource()) }
 
     // We use a high-contrast container for the controls
@@ -309,7 +314,7 @@ fun TimerControlBar(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 32.dp),
+            .padding(horizontal = 8.dp, vertical = 32.dp),
         overflowIndicator = {}
     ) {
 

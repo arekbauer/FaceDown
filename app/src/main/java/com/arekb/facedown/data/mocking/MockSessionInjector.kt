@@ -10,6 +10,7 @@ class MockSessionInjector @Inject constructor(
     private val sessionDao: SessionDao
 ) {
 
+    /*
     suspend fun injectSingleSession() {
         val today = System.currentTimeMillis()
 
@@ -17,13 +18,11 @@ class MockSessionInjector @Inject constructor(
             sessionDao.insertSession(it)
         }
     }
+     */
 
     suspend fun injectMockData() {
         // Clear existing data (Optional: only if you want a clean slate)
         // sessionDao.deleteAll()
-
-        val today = System.currentTimeMillis()
-        val oneDay = 86400000L // 24 hours in millis
 
         val mockSessions = listOf(
             // 1. TODAY (Active Streak)

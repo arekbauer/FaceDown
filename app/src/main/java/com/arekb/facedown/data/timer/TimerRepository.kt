@@ -13,8 +13,4 @@ object TimerRepository {
         _timerState.value = newState
     }
 
-    // Helper to reset for next time
-    fun reset() {
-        _timerState.value = TimerState.Idle
-    }
 }

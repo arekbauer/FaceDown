@@ -50,7 +50,7 @@ class FaceDownAppState(
             // Example: [Timer, Stats, Settings] -> Click Stats -> [Timer, Stats]
             // This triggers the 'popTransitionSpec' (Slide Right)
             while (backStack.lastIndex > index) {
-                backStack.removeLast()
+                backStack.removeAt(backStack.lastIndex)
             }
         } else {
             // CASE: Going FORWARD to a new screen

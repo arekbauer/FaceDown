@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"
+        tools:ignore="ForegroundServicesPolicy" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -21,10 +22,11 @@
         <service
             android:name=".data.timer.FocusTimerService"
             android:foregroundServiceType="specialUse"
-            android:exported="false"/>
+            android:exported="false">
         <property
             android:name="android.app.property.SPECIAL_USE_FGS_SUBTYPE"
             android:value="focus_timer_countdown" />
+        </service>
         <activity
             android:name=".MainActivity"
             android:exported="true"

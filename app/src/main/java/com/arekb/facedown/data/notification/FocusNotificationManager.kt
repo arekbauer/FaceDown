@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.arekb.facedown.R
 import com.arekb.facedown.domain.model.TimerState
+import java.util.Locale
 
 class FocusNotificationManager(private val context: Context) {
 
@@ -24,17 +25,15 @@ class FocusNotificationManager(private val context: Context) {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Focus Session",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Shows active focus timer progress"
-                setShowBadge(false)
-            }
-            notificationManager.createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "Focus Session",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Shows active focus timer progress"
+            setShowBadge(false)
         }
+        notificationManager.createNotificationChannel(channel)
     }
 
     fun buildNotification(
@@ -148,7 +147,7 @@ class FocusNotificationManager(private val context: Context) {
         val totalSecs = ms / 1000
         val mins = totalSecs / 60
         val secs = totalSecs % 60
-        return String.format("%02d:%02d", mins, secs)
+        return String.format(Locale.US, "%02d:%02d", mins, secs)
     }
 
     fun updateNotification(notification: Notification) {
