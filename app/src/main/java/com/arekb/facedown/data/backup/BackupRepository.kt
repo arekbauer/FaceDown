@@ -3,6 +3,7 @@ package com.arekb.facedown.data.backup
 import android.content.Context
 import android.net.Uri
 import com.arekb.facedown.data.database.SessionDao
+import com.arekb.facedown.data.database.TagType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,13 +34,15 @@ class BackupRepository @Inject constructor(
                 val dateStr = dateFormat.format(Date(session.timestamp))
                 val timeStr = timeFormat.format(Date(session.timestamp))
 
+                val tagEnum = TagType.fromId(session.tag)
+                val humanReadableTag = context.getString(tagEnum.labelRes)
+
                 // Handle nullable note (if null, replace with empty string)
                 // We wrap tag and note in quotes "" to safely handle commas inside the text
-                val safeTag = "\"${session.tag}\""
                 val safeNote = "\"${session.note ?: ""}\""
 
                 csvBuilder.append(
-                    "$dateStr,$timeStr,${session.durationMinutes},$safeTag,$safeNote\n"
+                    "$dateStr,$timeStr,${session.durationMinutes},\"$humanReadableTag\",$safeNote\n"
                 )
             }
 

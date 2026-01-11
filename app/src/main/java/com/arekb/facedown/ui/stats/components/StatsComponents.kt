@@ -38,6 +38,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arekb.facedown.R
 import com.arekb.facedown.data.database.FocusSession
+import com.arekb.facedown.data.database.TagType
 import com.arekb.facedown.ui.theme.FaceDownTheme
 import com.arekb.facedown.ui.theme.googleSansFlex
 import kotlinx.coroutines.delay
@@ -440,6 +442,8 @@ fun SessionCard(
 ) {
     val baseColor = getTagColor(session.tag)
     val faintColor = baseColor.copy(alpha = 0.1f)
+    val tagEnum = TagType.fromId(session.tag)
+    val localizedLabel = stringResource(id = tagEnum.labelRes)
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(8.dp),
@@ -461,7 +465,7 @@ fun SessionCard(
                 modifier = Modifier.width(60.dp)
             ) {
                 Text(
-                    text = session.tag.uppercase(),
+                    text = localizedLabel.uppercase(),
                     style = googleSansFlex(
                         weight = 900,
                         slant = -10f,
@@ -482,7 +486,7 @@ fun SessionCard(
             ) {
                 // Note
                 Text(
-                    text = if (session.note.isNullOrBlank()) "${session.tag} session" else session.note,
+                    text = if (session.note.isNullOrBlank()) "$localizedLabel session" else session.note,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

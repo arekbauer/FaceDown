@@ -88,6 +88,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arekb.facedown.R
+import com.arekb.facedown.data.database.TagType
 import com.arekb.facedown.data.timer.ServiceConstants
 import com.arekb.facedown.data.timer.ServiceConstants.GRACE_LIMIT
 import com.arekb.facedown.data.timer.ServiceConstants.STARTING_COUNTDOWN
@@ -529,8 +530,10 @@ fun TimerSessionView(
 
             is TimerState.Completed -> {
                 var noteText by remember { mutableStateOf("") }
-                var selectedTag by remember { mutableStateOf("Focus") }
-                val tags = listOf("Focus", "Work", "Study", "Read")
+                var selectedTag by remember { mutableStateOf(TagType.FOCUS) }
+                val tagOptions = TagType.entries.map { tag ->
+                    tag to stringResource(tag.labelRes)
+                }
 
                 EndTimerDisplay(
                     colour = colorResource(R.color.mint_green),
@@ -581,14 +584,14 @@ fun TimerSessionView(
                                 ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
                             }
                         ) {
-                            tags.forEachIndexed { index, tagLabel ->
-                                val isSelected = (tagLabel == selectedTag)
+                            tagOptions.forEach { (tagEnum, labelText) ->
+                                val isSelected = (tagEnum == selectedTag)
 
                                 this.toggleableItem(
                                     checked = isSelected,
                                     weight = 1f,
-                                    onCheckedChange = { selectedTag = tagLabel },
-                                    label = tagLabel,
+                                    onCheckedChange = { selectedTag = tagEnum },
+                                    label = labelText,
                                 )
                             }
                         }
@@ -621,7 +624,7 @@ fun TimerSessionView(
                 FilledTonalButton(
                     onClick = {
                         val minutes = state.totalDurationMinutes
-                        onSaveClicked(minutes, selectedTag, noteText.ifBlank { null })
+                        onSaveClicked(minutes, selectedTag.id, noteText.ifBlank { null })
                         onReset()
                     },
                     modifier = Modifier
@@ -631,7 +634,7 @@ fun TimerSessionView(
                         .widthIn(min = 224.dp, max = 300.dp),
                     shape = MaterialTheme.shapes.extraLargeIncreased
                 ) {
-                    Text(stringResource(R.string.save_session))
+                    Text(stringResource(R.string.save_session), fontSize = 18.sp)
                 }
             }
         }
