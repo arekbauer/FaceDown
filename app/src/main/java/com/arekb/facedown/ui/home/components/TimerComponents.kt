@@ -59,12 +59,14 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.arekb.facedown.R
 
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -110,6 +112,7 @@ fun TimerDisplay(
     }
 }
 
+// TODO: Look into making it take up less height
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CustomWavyIndicator(progressFactor: Float, animationSpec: AnimationSpec<Float>, colour: Color, trackColour: Color) {
@@ -340,9 +343,13 @@ fun TimerControlBar(
                     shapes = IconButtonDefaults.toggleableShapes(),
                 ) {
                     Icon(
-                        painter = if (isPaused) painterResource(com.arekb.facedown.R.drawable.icon_play_filled)
-                                    else painterResource(com.arekb.facedown.R.drawable.icon_pause_filled),
-                        contentDescription = if (isPaused) "Resume" else "Pause"
+                        painter = if (isPaused) painterResource(R.drawable.icon_play_filled)
+                                    else painterResource(R.drawable.icon_pause_filled),
+                        contentDescription = if (isPaused)
+                            stringResource(R.string.resume)
+                        else stringResource(
+                            R.string.pause
+                        )
                     )
                 }
             }
@@ -367,8 +374,8 @@ fun TimerControlBar(
                     )
                 ) {
                     Icon(
-                        painter = painterResource(com.arekb.facedown.R.drawable.icon_stop_filled),
-                        contentDescription = "Stop Session"
+                        painter = painterResource(R.drawable.icon_stop_filled),
+                        contentDescription = stringResource(R.string.stop_session)
                     )
                 }
             }
@@ -415,7 +422,10 @@ fun EndTimerDisplay(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = icon,
-                contentDescription = if (icon == Icons.Rounded.Close) "Failed" else "Complete!",
+                contentDescription = if (icon == Icons.Rounded.Close) stringResource(R.string.failed)
+                else stringResource(
+                    R.string.complete
+                ),
                 tint = iconColour,
                 modifier = Modifier.size(80.dp)
             )

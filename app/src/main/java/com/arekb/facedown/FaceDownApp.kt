@@ -5,6 +5,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import dagger.hilt.android.HiltAndroidApp
 
+@Suppress("HardCodedStringLiteral")
+private const val NOTIFICATION_ID = "focus_channel"
+
 @HiltAndroidApp
 class FaceDownApp : Application() {
 
@@ -12,10 +15,12 @@ class FaceDownApp : Application() {
         super.onCreate()
 
         val channel = NotificationChannel(
-            "focus_channel",
-            "Focus Timer",
+            NOTIFICATION_ID,
+            getString(R.string.focus_timer),
             NotificationManager.IMPORTANCE_LOW // Low importance so it doesn't make sound
-        )
+        ).apply {
+            description = getString(R.string.channel_description_focus)
+        }
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
     }

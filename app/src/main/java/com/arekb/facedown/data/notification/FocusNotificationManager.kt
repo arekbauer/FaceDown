@@ -16,6 +16,7 @@ class FocusNotificationManager(private val context: Context) {
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     companion object {
+        @Suppress("HardCodedStringLiteral")
         const val CHANNEL_ID = "focus_session_channel"
         const val NOTIFICATION_ID = 1
     }
@@ -27,10 +28,10 @@ class FocusNotificationManager(private val context: Context) {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Focus Session",
+            context.getString(R.string.focus_session),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "Shows active focus timer progress"
+            description = context.getString(R.string.shows_active_focus_timer_progress)
             setShowBadge(false)
         }
         notificationManager.createNotificationChannel(channel)
@@ -71,8 +72,8 @@ class FocusNotificationManager(private val context: Context) {
 
         when (state) {
             is TimerState.Running -> {
-                builder.setContentTitle("Focusing...")
-                builder.setContentText("Keep phone face down")
+                builder.setContentTitle(context.getString(R.string.focusing))
+                builder.setContentText(context.getString(R.string.keep_phone_face_down))
 
                 // Add the focus segment
                 style.addProgressSegment(
@@ -86,8 +87,8 @@ class FocusNotificationManager(private val context: Context) {
                 builder.setShortCriticalText(formatMillis(remainingMillis))
             }
             is TimerState.GracePeriod -> {
-                builder.setContentTitle("Resume focus!")
-                builder.setContentText("Flip phone back")
+                builder.setContentTitle(context.getString(R.string.resume_focus))
+                builder.setContentText(context.getString(R.string.flip_phone_back))
 
                 // Add the focus segment
                 style.addProgressSegment(
@@ -101,8 +102,8 @@ class FocusNotificationManager(private val context: Context) {
                 builder.setShortCriticalText(formatMillis(remainingMillis))
             }
             is TimerState.Paused -> {
-                builder.setContentTitle("Timer paused")
-                builder.setContentText("Flip to resume")
+                builder.setContentTitle(context.getString(R.string.timer_paused))
+                builder.setContentText(context.getString(R.string.flip_to_resume))
 
                 // In Grace/Pause, we show the segment but stop the "playhead" progress
                 style.addProgressSegment(
@@ -128,15 +129,15 @@ class FocusNotificationManager(private val context: Context) {
 
         when (state) {
             is TimerState.Running -> {
-                builder.setContentTitle("Focusing...")
+                builder.setContentTitle(context.getString(R.string.focusing))
                 builder.setProgress(100, progress, false)
             }
             is TimerState.GracePeriod -> {
-                builder.setContentTitle("Put the phone down!")
+                builder.setContentTitle(context.getString(R.string.put_the_phone_down))
                 builder.setProgress(100, progress, false)
             }
             is TimerState.Paused -> {
-                builder.setContentTitle("Timer Paused")
+                builder.setContentTitle(context.getString(R.string.timer_paused))
                 builder.setProgress(100, progress, true) // Indeterminate to show pause
             }
             else -> {}

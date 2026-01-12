@@ -60,6 +60,7 @@ fun DataSettingsScreen(
 
     // State for the "Are you sure?" dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val historyClearedString = stringResource(R.string.history_cleared)
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv")
@@ -82,11 +83,11 @@ fun DataSettingsScreen(
         bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text("Data management") },
+                title = { Text(stringResource(R.string.data_management)) },
                 subtitle = { Text(stringResource(R.string.toolbar_settings_label)) },
                 navigationIcon = {
                     FilledTonalIconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -103,9 +104,9 @@ fun DataSettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             FaceDownListItem(
-                topText = "Export data",
-                title = "Export to CSV",
-                subtitle = "Save your session logs",
+                topText = stringResource(R.string.export_data),
+                title = stringResource(R.string.export_to_csv),
+                subtitle = stringResource(R.string.save_your_session_logs),
                 icon = R.drawable.settings_export,
                 position = ItemPosition.Single,
                 onClick = {
@@ -118,9 +119,9 @@ fun DataSettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             FaceDownListErrorItem(
-                topText = "Delete data",
-                title = "Clear history",
-                subtitle = "Delete all sessions permanently",
+                topText = stringResource(R.string.delete_data),
+                title = stringResource(R.string.clear_history),
+                subtitle = stringResource(R.string.delete_all_sessions_permanently),
                 icon = R.drawable.settings_delete,
                 onClick = { showDeleteDialog = true }
             )
@@ -132,27 +133,28 @@ fun DataSettingsScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             icon = { Icon(Icons.Outlined.Close, contentDescription = null) },
-            title = { Text("Clear all history?") },
+            title = { Text(stringResource(R.string.clear_all_history)) },
             text = {
-                Text("This action cannot be undone. All your focus sessions and stats will be permanently deleted.")
+                Text(stringResource(R.string.this_action_cannot_be_undone_all_your_focus_sessions_and_stats_will_be_permanently_deleted))
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         viewModel.clearHistory()
                         showDeleteDialog = false
-                        Toast.makeText(context, "History cleared", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context,
+                            historyClearedString, Toast.LENGTH_SHORT).show()
                     },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Delete everything")
+                    Text(stringResource(R.string.delete_everything))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

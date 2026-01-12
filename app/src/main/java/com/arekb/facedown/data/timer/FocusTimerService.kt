@@ -40,6 +40,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@Suppress("HardCodedStringLiteral")
 object ServiceConstants {
     const val ACTION_START = "ACTION_START"
     const val ACTION_PAUSE = "ACTION_PAUSE"
@@ -81,13 +82,13 @@ class FocusTimerService : Service() {
             if (Build.VERSION.SDK_INT >= 34) {
                 startForeground(
                     1,
-                    createNotification("Focus Session Active"),
+                    createNotification(getString(R.string.focus_session_active)),
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
                 )
             } else {
                 startForeground(
                     1,
-                    createNotification("Focus Session Active")
+                    createNotification(getString(R.string.focus_session_active))
                 )
             }
         }
@@ -359,8 +360,8 @@ class FocusTimerService : Service() {
 
     private fun createNotificationChannel() {
         val channelId = "focus_channel"
-        val channelName = "Focus Timer Status"
-        val channelDescription = "Shows the active timer status"
+        val channelName = getString(R.string.focus_timer_status)
+        val channelDescription = getString(R.string.shows_the_active_timer_status)
 
         val importance = android.app.NotificationManager.IMPORTANCE_LOW
 

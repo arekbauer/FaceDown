@@ -87,20 +87,20 @@ fun SettingsScreen(
         ) {
             item {
                 FaceDownListItem(
-                    topText = "Preferences",
+                    topText = stringResource(R.string.preferences),
                     icon = R.drawable.settings_alarm,
-                    title = "Timer options",
-                    subtitle = "Sounds, haptics",
+                    title = stringResource(R.string.timer_options),
+                    subtitle = stringResource(R.string.sounds_haptics),
                     position = ItemPosition.Top,
                     onClick = onNavigateToTimerOptions
                 )
                 FaceDownListItem(
                     icon = R.drawable.settings_palette,
-                    title = "App theme",
+                    title = stringResource(R.string.app_theme),
                     subtitle = when (currentTheme) {
-                        AppTheme.SYSTEM -> "Default"
-                        AppTheme.LIGHT -> "Light"
-                        AppTheme.DARK -> "Dark"
+                        AppTheme.SYSTEM -> stringResource(R.string.system_theme)
+                        AppTheme.LIGHT -> stringResource(R.string.light)
+                        AppTheme.DARK -> stringResource(R.string.dark)
                     },
                     position = ItemPosition.Middle,
                     onClick = { showThemeDialog = true },
@@ -108,8 +108,8 @@ fun SettingsScreen(
                 )
                 FaceDownListItem(
                     icon = R.drawable.settings_language,
-                    title = "App language",
-                    subtitle = "System",
+                    title = stringResource(R.string.app_language),
+                    subtitle = stringResource(R.string.system),
                     position = ItemPosition.Bottom,
                     onClick = { }, // TODO: Do language options
                     trailingContent = null
@@ -119,10 +119,10 @@ fun SettingsScreen(
 
             item {
                 FaceDownListItem(
-                    topText = "Support",
+                    topText = stringResource(R.string.support),
                     icon = R.drawable.settings_bug,
-                    title = "Report a bug",
-                    subtitle = "Found an issue? Let me know",
+                    title = stringResource(R.string.report_a_bug),
+                    subtitle = stringResource(R.string.found_an_issue_let_me_know),
                     position = ItemPosition.Top,
                     onClick = {
                         // TODO: Replace with your actual Google Form URL
@@ -132,10 +132,11 @@ fun SettingsScreen(
                 )
                 FaceDownListItem(
                     icon = R.drawable.settings_translate,
-                    title = "Help with translation",
-                    subtitle = "Make FaceDown accessible to everyone",
+                    title = stringResource(R.string.help_with_translation),
+                    subtitle = stringResource(R.string.make_facedown_accessible_to_everyone),
                     position = ItemPosition.Bottom,
                     onClick = {
+                        @Suppress("HardCodedStringLiteral")
                         launchEmailIntent(
                             context = context,
                             email = "hello@facedown.app", // TODO: Replace with my email
@@ -149,10 +150,10 @@ fun SettingsScreen(
 
             item {
                 FaceDownListItem(
-                    topText = "Data management",
+                    topText = stringResource(R.string.data_management),
                     icon = R.drawable.settings_data,
-                    title = "Data",
-                    subtitle = "Export, delete",
+                    title = stringResource(R.string.data),
+                    subtitle = stringResource(R.string.export_delete),
                     position = ItemPosition.Single,
                     onClick = onNavigateToData
                 )
@@ -161,10 +162,10 @@ fun SettingsScreen(
 
             item {
                 FaceDownListItem(
-                    topText = "About Facedown",
+                    topText = stringResource(R.string.about_facedown),
                     icon = R.drawable.settings_info,
-                    title = "About",
-                    subtitle = "Version " + BuildConfig.VERSION_NAME,
+                    title = stringResource(R.string.about),
+                    subtitle = stringResource(R.string.version, BuildConfig.VERSION_NAME),
                     position = ItemPosition.Single,
                     onClick = onNavigateToAbout
                 )
@@ -191,7 +192,7 @@ fun ThemeSelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text("Choose theme") },
+        title = { Text(stringResource(R.string.choose_theme)) },
         text = {
             Column {
                 AppTheme.entries.forEach { theme ->
@@ -212,9 +213,9 @@ fun ThemeSelectionDialog(
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = when (theme) {
-                                AppTheme.SYSTEM -> "System default"
-                                AppTheme.LIGHT -> "Light"
-                                AppTheme.DARK -> "Dark"
+                                AppTheme.SYSTEM -> stringResource(R.string.system_theme)
+                                AppTheme.LIGHT -> stringResource(R.string.light)
+                                AppTheme.DARK -> stringResource(R.string.dark)
                             }
                         )
                     }
@@ -222,7 +223,7 @@ fun ThemeSelectionDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismissRequest) { Text("Cancel") }
+            TextButton(onClick = onDismissRequest) { Text(stringResource(R.string.cancel)) }
         }
     )
 }

@@ -192,9 +192,9 @@ fun HomeScreen(
     if (showDndDialog) {
         AlertDialog(
             onDismissRequest = { showDndDialog = false },
-            title = { Text("Permission required") },
+            title = { Text(stringResource(R.string.permission_required)) },
             text = {
-                Text("To automatically silence notifications while you focus, FaceDown needs 'Do Not Disturb' access.\n\nPlease grant this permission on the next screen.")
+                Text(stringResource(R.string.to_automatically_silence_notifications_while_you_focus_facedown_needs_do_not_disturb_access_please_grant_this_permission_on_the_next_screen))
             },
             confirmButton = {
                 Button(
@@ -204,12 +204,12 @@ fun HomeScreen(
                         context.startActivity(intent)
                     }
                 ) {
-                    Text("Open settings")
+                    Text(stringResource(R.string.open_settings))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDndDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -544,7 +544,9 @@ fun TimerSessionView(
                 Spacer(modifier = Modifier.height(48.dp))
 
                 Box(
-                    modifier = Modifier.widthIn(max = 500.dp).fillMaxWidth()
+                    modifier = Modifier
+                        .widthIn(max = 500.dp)
+                        .fillMaxWidth()
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -557,6 +559,7 @@ fun TimerSessionView(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // TODO: Look into on press it taking up two lines, maybe just remove the bouncy effect
                         ButtonGroup(
                             overflowIndicator = { menuState ->
                                 ButtonGroupDefaults.OverflowIndicator(menuState = menuState)

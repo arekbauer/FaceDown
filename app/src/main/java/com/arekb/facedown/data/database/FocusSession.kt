@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.arekb.facedown.R
 
+@Suppress("HardCodedStringLiteral")
 @Entity(tableName = "focus_sessions")
 data class FocusSession(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -14,6 +15,7 @@ data class FocusSession(
     val note: String?
 )
 
+@Suppress("HardCodedStringLiteral")
 enum class TagType(
     val id: String,              // 1. The Stable ID (Saved to DB)
     @StringRes val labelRes: Int // 2. The Translation Key (Shown in UI)

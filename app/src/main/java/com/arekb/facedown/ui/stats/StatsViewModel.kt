@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @HiltViewModel
 class StatsViewModel @Inject constructor(
@@ -72,21 +71,20 @@ class StatsViewModel @Inject constructor(
                         // End of list
                         return@insertSeparators null
                     }
+                    val afterType = getHeaderType(after.session.timestamp)
 
                     if (before == null) {
                         // Start of list: Always show a header for the very first item
-                        return@insertSeparators HistoryItem.Header(getHeaderForTimestamp(after.session.timestamp))
+                        return@insertSeparators HistoryItem.Header(afterType)
                     }
 
                     // Check if the group changed
-                    val beforeHeader = getHeaderForTimestamp(before.session.timestamp)
-                    val afterHeader = getHeaderForTimestamp(after.session.timestamp)
+                    val beforeType = getHeaderType(before.session.timestamp)
 
-                    if (beforeHeader != afterHeader) {
-                        // The group changed! Insert the new header.
-                        HistoryItem.Header(afterHeader)
+                    if (beforeType != afterType) {
+                        HistoryItem.Header(afterType)
                     } else {
-                        null // Same group, no separator needed
+                        null
                     }
                 }
         }
@@ -99,16 +97,15 @@ class StatsViewModel @Inject constructor(
     }
 }
 
-private fun getHeaderForTimestamp(timestamp: Long): String {
+private fun getHeaderType(timestamp: Long): HistoryHeaderType {
     val zoneId = ZoneId.systemDefault()
     val date = Instant.ofEpochMilli(timestamp).atZone(zoneId).toLocalDate()
     val today = LocalDate.now()
 
     return when {
-        date.isEqual(today) -> "Today"
-        date.isEqual(today.minusDays(1)) -> "Yesterday"
-        // For older items: "October 2024"
-        else -> date.format(DateTimeFormatter.ofPattern("MMMM yyyy"))
+        date.isEqual(today) -> HistoryHeaderType.Today
+        date.isEqual(today.minusDays(1)) -> HistoryHeaderType.Yesterday
+        else -> HistoryHeaderType.MonthYear(date.year, date.month)
     }
 }
 
@@ -117,7 +114,15 @@ data class HeatmapWeek(
     val days: List<Pair<LocalDate, HeatmapLevel>>
 )
 
+sealed interface HistoryHeaderType {
+    data object Today : HistoryHeaderType
+    data object Yesterday : HistoryHeaderType
+    // For older items, we only care about the Year and Month
+    data class MonthYear(val year: Int, val month: java.time.Month) : HistoryHeaderType
+}
+
+// Update your existing sealed class to hold this Type, not a String
 sealed class HistoryItem {
     data class SessionItem(val session: FocusSession) : HistoryItem()
-    data class Header(val title: String) : HistoryItem()
+    data class Header(val type: HistoryHeaderType) : HistoryItem()
 }

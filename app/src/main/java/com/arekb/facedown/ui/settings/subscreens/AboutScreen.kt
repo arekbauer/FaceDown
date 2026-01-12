@@ -1,6 +1,7 @@
 package com.arekb.facedown.ui.settings.subscreens
 
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,7 @@ fun AboutScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     // Helper to launch Play Store for rating
+    @Suppress("HardCodedStringLiteral")
     fun launchPlayStore() {
         val appPackageName = context.packageName
         try {
@@ -59,15 +61,17 @@ fun AboutScreen(
         }
     }
 
-    fun launchOssLicenses() {
+    @Suppress("HardCodedStringLiteral")
+    fun launchOssLicenses(context: Context) {
         try {
             val intent = Intent(context, Class.forName("com.google.android.gms.oss.licenses.OssLicensesMenuActivity"))
-            intent.putExtra("title", "Open source licenses")
+            intent.putExtra("title", context.getString(R.string.open_source_licenses))
 
             context.startActivity(intent)
         } catch (e: Exception) {
             // This catches crashes if the plugin/library isn't properly synced
-            Toast.makeText(context, "License info not available", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context,
+                context.getString(R.string.license_info_not_available), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -76,11 +80,13 @@ fun AboutScreen(
         bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text("About FaceDown") },
+                title = { Text(stringResource(R.string.about_facedown)) },
                 subtitle = { Text(stringResource(R.string.toolbar_settings_label)) },
                 navigationIcon = {
                     FilledTonalIconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(
+                            R.string.back
+                        ))
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -97,9 +103,9 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             FaceDownListItem(
-                topText = "Support me",
-                title = "Rate FaceDown",
-                subtitle = "Leave a review on the Play Store",
+                topText = stringResource(R.string.support_me),
+                title = stringResource(R.string.rate_facedown),
+                subtitle = stringResource(R.string.leave_a_review_on_the_play_store),
                 icon = R.drawable.settings_rate,
                 position = ItemPosition.Single,
                 onClick = { launchPlayStore() },
@@ -109,8 +115,8 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             FaceDownListItem(
-                topText = "Legal",
-                title = "Privacy policy",
+                topText = stringResource(R.string.legal),
+                title = stringResource(R.string.privacy_policy),
                 icon = R.drawable.settings_privacy,
                 position = ItemPosition.Top,
                 onClick = {
@@ -121,10 +127,10 @@ fun AboutScreen(
             )
 
             FaceDownListItem(
-                title = "Open source licenses",
+                title = stringResource(R.string.open_source_licenses),
                 icon = R.drawable.settings_license,
                 position = ItemPosition.Bottom,
-                onClick = { launchOssLicenses() }
+                onClick = { launchOssLicenses(context) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -135,7 +141,7 @@ fun AboutScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Version ${BuildConfig.VERSION_NAME}",
+                    text = stringResource(R.string.version, BuildConfig.VERSION_NAME),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

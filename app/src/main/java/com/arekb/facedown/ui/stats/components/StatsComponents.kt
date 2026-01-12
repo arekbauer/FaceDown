@@ -57,6 +57,7 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
@@ -421,13 +422,13 @@ fun EmptyHistoryMessage() {
 
         // 2. Friendly Text
         Text(
-            text = "No sessions yet",
+            text = stringResource(R.string.no_sessions_yet),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
 
         Text(
-            text = "Your focus history will appear here",
+            text = stringResource(R.string.your_focus_history_will_appear_here),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -446,7 +447,9 @@ fun SessionCard(
     val localizedLabel = stringResource(id = tagEnum.labelRes)
 
     Card(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
         shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -486,7 +489,9 @@ fun SessionCard(
             ) {
                 // Note
                 Text(
-                    text = if (session.note.isNullOrBlank()) "$localizedLabel session" else session.note,
+                    text = if (session.note.isNullOrBlank())
+                        localizedLabel + " " + stringResource (R.string.session)
+                    else session.note,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -550,20 +555,21 @@ fun getTagColor(tag: String): Color {
 
 @Composable
 fun formatSessionTime(timestamp: Long): String {
+    val yesterdayStr = stringResource(R.string.yesterday)
     return remember(timestamp) {
         val instant = Instant.ofEpochMilli(timestamp)
         val zoneId = ZoneId.systemDefault()
         val sessionDate = instant.atZone(zoneId).toLocalDate()
         val today = java.time.LocalDate.now()
 
-        val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+        val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
         val dateFormatter = DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault())
 
         val timeStr = instant.atZone(zoneId).format(timeFormatter)
 
         when {
             sessionDate.isEqual(today) -> "$timeStr"
-            sessionDate.isEqual(today.minusDays(1)) -> "Yesterday"
+            sessionDate.isEqual(today.minusDays(1)) -> yesterdayStr
             else -> instant.atZone(zoneId).format(dateFormatter)
         }
     }

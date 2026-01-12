@@ -7,6 +7,7 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.widget.Toast
 import androidx.core.net.toUri
+import com.arekb.facedown.R
 import com.arekb.facedown.data.timer.FocusTimerService
 import com.arekb.facedown.data.timer.ServiceConstants
 import kotlinx.coroutines.Dispatchers
@@ -43,18 +44,23 @@ fun launchEmailIntent(context: Context, email: String, subject: String) {
         context.startActivity(intent)
     } catch (_: Exception) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("Support Email", email)
+        val clip = ClipData.newPlainText(context.getString(R.string.support_email), email)
         clipboard.setPrimaryClip(clip)
 
         // Tell the user
-        Toast.makeText(context, "Email copied to clipboard", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context,
+            context.getString(R.string.email_copied_to_clipboard), Toast.LENGTH_SHORT).show()
     }
 }
 
 suspend fun getRingtoneName(context: Context, uriString: String?): String = withContext(Dispatchers.IO) {
-    if (uriString.isNullOrEmpty()) return@withContext "Default Notification"
+    if (uriString.isNullOrEmpty()) return@withContext context.getString(R.string.system_theme)
 
-    val uri = uriString.toUri()
-    val ringtone = RingtoneManager.getRingtone(context, uri)
-    ringtone?.getTitle(context) ?: "Unknown"
+    try {
+        val uri = uriString.toUri()
+        val ringtone = RingtoneManager.getRingtone(context, uri)
+        ringtone?.getTitle(context) ?: context.getString(R.string.unknown)
+    } catch (e: Exception) {
+        context.getString(R.string.unknown)
+    }
 }

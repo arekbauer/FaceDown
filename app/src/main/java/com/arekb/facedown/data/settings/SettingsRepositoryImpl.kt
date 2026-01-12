@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Suppress("HardCodedStringLiteral")
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @Singleton
@@ -21,6 +22,7 @@ class SettingsRepositoryImpl @Inject constructor(
 ) : SettingsRepository {
 
     // 2. Define the Keys
+    @Suppress("HardCodedStringLiteral")
     private object Keys {
         val THEME = stringPreferencesKey("app_theme")
         val HAPTICS = booleanPreferencesKey("haptics_enabled")

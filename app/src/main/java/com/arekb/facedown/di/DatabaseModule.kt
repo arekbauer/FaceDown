@@ -11,6 +11,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+@Suppress("HardCodedStringLiteral")
+private const val DATABASE_NAME = "facedown_db"
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
@@ -21,7 +24,7 @@ object DatabaseModule {
         return Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
-                "facedown_db"
+                DATABASE_NAME
             ).fallbackToDestructiveMigration(false)
             .build()
     }

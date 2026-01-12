@@ -1,5 +1,6 @@
 package com.arekb.facedown.ui.stats
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,9 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.arekb.facedown.R
 import com.arekb.facedown.ui.stats.components.EmptyHistoryMessage
 import com.arekb.facedown.ui.stats.components.SessionCard
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -69,7 +73,7 @@ fun HistoryScreen(
                     FilledTonalIconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -107,29 +111,21 @@ fun HistoryScreen(
                 }
             }
 
+            @Suppress("HardCodedStringLiteral")
             items(
                 count = pagingItems.itemCount,
                 // Paging 3 key handling
                 key = { index ->
-                    when (val item = pagingItems[index]) {
-                        is HistoryItem.SessionItem -> "session_${item.session.id}"
-                        is HistoryItem.Header -> "header_${item.title}"
-                        null -> "null_$index"
-                    }
-                },
-                contentType = { index ->
-                    when (pagingItems[index]) {
-                        is HistoryItem.SessionItem -> "session"
-                        is HistoryItem.Header -> "header"
-                        null -> null
-                    }
+                    // Stable keys are important for Paging
+                    val item = pagingItems[index]
+                    if (item is HistoryItem.SessionItem) item.session.id else "header_$index"
                 }
             ) { index ->
                 when (val item = pagingItems[index]) {
                     is HistoryItem.Header -> {
                         // Render the Date Divider
                         Text(
-                            text = item.title,
+                            text = getHeaderText(item.type),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
@@ -170,6 +166,24 @@ fun HistoryScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun getHeaderText(type: HistoryHeaderType): String {
+    return when (type) {
+        HistoryHeaderType.Today -> stringResource(R.string.today)
+        HistoryHeaderType.Yesterday -> stringResource(R.string.yesterday)
+        is HistoryHeaderType.MonthYear -> {
+            // "October 2024" -> Internationalized
+            val locale = Locale.getDefault()
+            val pattern = DateFormat.getBestDateTimePattern(locale, "MMMMy")
+            val formatter = DateTimeFormatter.ofPattern(pattern, locale)
+
+            // Reconstruct a date (e.g., 1st of that month) to format it
+            val date = LocalDate.of(type.year, type.month, 1)
+            date.format(formatter)
         }
     }
 }

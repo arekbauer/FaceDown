@@ -70,6 +70,9 @@ fun TimerOptionsScreen(
 
     // State for the Sound Name text (e.g. "Oxygen")
     var soundName by remember { mutableStateOf("Default") }
+    val ringtoneSysErrStr = stringResource(R.string.cannot_open_ringtone_picker)
+    val ringtoneErrStr = stringResource(R.string.something_went_wrong)
+    val soundOnStr = stringResource(R.string.turn_on_sound_to_pick_a_tone)
 
     // Load sound name whenever URI changes
     LaunchedEffect(currentSoundUri) {
@@ -108,11 +111,11 @@ fun TimerOptionsScreen(
         bottomBar = { Spacer(Modifier.height(contentPadding.calculateBottomPadding())) },
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text("Timer options") },
+                title = { Text(stringResource(R.string.timer_options)) },
                 subtitle = { Text(stringResource(R.string.toolbar_settings_label)) },
                 navigationIcon = {
                     FilledTonalIconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -130,9 +133,9 @@ fun TimerOptionsScreen(
 
             // 1. Master Switch
             FaceDownSwitchItem(
-                topText = "Configurations",
-                title = "Play sound",
-                subtitle = "When timer finishes",
+                topText = stringResource(R.string.configurations),
+                title = stringResource(R.string.play_sound),
+                subtitle = stringResource(R.string.when_timer_finishes),
                 icon = R.drawable.settings_timer_sound,
                 checked = isSoundEnabled,
                 onCheckedChange = { viewModel.toggleSound(it) },
@@ -142,8 +145,8 @@ fun TimerOptionsScreen(
             // 2. Ringtone Picker (Disabled if sound is off)
             // We use standard ListItem if we want the chevron, or customize it
             FaceDownListItem(
-                title = "Alarm tone",
-                subtitle = if (isSoundEnabled) soundName else "Sound disabled",
+                title = stringResource(R.string.alarm_tone),
+                subtitle = if (isSoundEnabled) soundName else stringResource(R.string.sound_disabled),
                 icon = R.drawable.settings_alarm,
                 position = ItemPosition.Bottom,
                 onClick = {
@@ -166,17 +169,17 @@ fun TimerOptionsScreen(
                         } catch (_: ActivityNotFoundException) {
                             // The user tried to do something, and the system failed
                             scope.launch {
-                                snackbarHostState.showSnackbar("Cannot open ringtone picker")
+                                snackbarHostState.showSnackbar(ringtoneSysErrStr)
                             }
                         } catch (_: Exception) {
                             // Generic safety net
                             scope.launch {
-                                snackbarHostState.showSnackbar("Something went wrong")
+                                snackbarHostState.showSnackbar(ringtoneErrStr)
                             }
                         }
                     }
                     else {
-                        Toast.makeText(context, "Turn on sound to pick a tone", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, soundOnStr, Toast.LENGTH_SHORT).show()
                     }
                 }
             )
@@ -184,9 +187,9 @@ fun TimerOptionsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             FaceDownSwitchItem(
-                topText = "Haptics",
-                title = "Vibration",
-                subtitle = "Vibrate when timer finishes",
+                topText = stringResource(R.string.haptics),
+                title = stringResource(R.string.vibration),
+                subtitle = stringResource(R.string.vibrate_when_timer_finishes),
                 icon = R.drawable.settings_timer_vibrate,
                 checked = isHapticsEnabled,
                 onCheckedChange = { viewModel.toggleHaptics(it) },

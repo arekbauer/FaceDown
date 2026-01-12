@@ -2,13 +2,15 @@ package com.arekb.facedown.data.backup
 
 import android.content.Context
 import android.net.Uri
+import com.arekb.facedown.R
 import com.arekb.facedown.data.database.SessionDao
 import com.arekb.facedown.data.database.TagType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
@@ -21,24 +23,29 @@ class BackupRepository @Inject constructor(
         try {
             val sessions = dao.getAllSessions()
             val csvBuilder = StringBuilder()
-
             // 1. The Header Row
-            csvBuilder.append("Date,Time,Duration (Min),Tag,Note\n")
+            csvBuilder.append(context.getString(R.string.date_time_duration_min_tag_note) + "\n")
 
             // 2. Date Formatter
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
+            val timeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
+
+            val zoneId = ZoneId.systemDefault()
 
             // 3. Build the rows
             for (session in sessions) {
-                val dateStr = dateFormat.format(Date(session.timestamp))
-                val timeStr = timeFormat.format(Date(session.timestamp))
+                android.util.Log.d("BackupDebug", "Raw Timestamp: ${session.timestamp}")
+                // Convert Long -> Instant -> ZonedDateTime (Timezone aware)
+                val zonedDateTime = Instant.ofEpochMilli(session.timestamp).atZone(zoneId)
+
+                // Format using the modern formatters
+                val dateStr = zonedDateTime.format(dateFormatter)
+                val timeStr = zonedDateTime.format(timeFormatter)
 
                 val tagEnum = TagType.fromId(session.tag)
                 val humanReadableTag = context.getString(tagEnum.labelRes)
 
-                // Handle nullable note (if null, replace with empty string)
-                // We wrap tag and note in quotes "" to safely handle commas inside the text
+                // Handle nullable note and CSV escaping
                 val safeNote = "\"${session.note ?: ""}\""
 
                 csvBuilder.append(
