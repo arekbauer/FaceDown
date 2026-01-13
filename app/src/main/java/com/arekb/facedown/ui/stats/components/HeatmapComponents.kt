@@ -47,6 +47,8 @@ import com.arekb.facedown.data.stats.HeatmapLevel
 import com.arekb.facedown.ui.stats.HeatmapWeek
 import com.arekb.facedown.ui.theme.FaceDownTheme
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 data class HeatmapStyle(
     val gutterWidth: Dp = 4.dp,
@@ -226,8 +228,16 @@ private fun WeekCanvasColumn(
 ) {
     // Label Logic: Only show label for the first week of a month (Days 1-7)
     val firstDate = week.days.firstOrNull()?.first
-    val showLabel = firstDate != null && firstDate.dayOfMonth <= 7
-    val labelText = if (showLabel) firstDate.month.name.take(3) else null
+    val monthFormatter = remember {
+        DateTimeFormatter.ofPattern("MMM", Locale.getDefault())
+    }
+    val labelText = remember(firstDate) {
+        if (firstDate != null && firstDate.dayOfMonth <= 7) {
+            firstDate.format(monthFormatter)
+        } else {
+            null
+        }
+    }
     val gridHeight = (squareSize * 7) + (style.gutterHeight * 6)
 
     val baseColor = MaterialTheme.colorScheme.tertiary

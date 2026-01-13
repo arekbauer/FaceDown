@@ -31,7 +31,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -55,6 +54,7 @@ import com.arekb.facedown.ui.theme.googleSansFlex
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -62,7 +62,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 data class WeeklyBarData(
-    val dayLabel: String, // "M", "T", "W"...
+    val date: LocalDate, // "M", "T", "W"...
     val minutes: Int,     // Total focus time
     val ratio: Float,     // 0.0 to 1.0 (relative to the biggest bar)
     val isToday: Boolean
@@ -119,38 +119,6 @@ fun PreviewSessionCard() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewWeeklyChart() {
-    // Mock Data Scenario:
-    // User crushed it on Tuesday (Spotlight), missed Wednesday, and it is currently Thursday.
-    val mockData = listOf(
-        WeeklyBarData("Mon", 45, 0.37f, false),
-        WeeklyBarData("Tue", 120, 1.0f, false), // Best Day (Ratio 1.0)
-        WeeklyBarData("Wed", 0, 0f, false),   // Zero Day
-        WeeklyBarData("Thu", 60, 0.5f, false),   // TODAY
-        WeeklyBarData("Fri", 76, 0.75f, true),   // Future
-        WeeklyBarData("Sat", 0, 0.0f, false),   // Future
-        WeeklyBarData("Sun", 0, 0.0f, false)    // Future
-    )
-
-    FaceDownTheme {
-        Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(24.dp))
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "Weekly snapshot",
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            AnimatedWeeklyChart(weekData = mockData)
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Preview(name = "Stats Hero Card", showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
@@ -201,6 +169,10 @@ fun AnimatedWeeklyChart(
     val emptyDotColor = MaterialTheme.colorScheme.surfaceVariant
     val futureColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
 
+    val dayFormatter = remember {
+        DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+    }
+
     // Fonts
     val textMeasurer = rememberTextMeasurer()
     val labelLarge = MaterialTheme.typography.labelLarge
@@ -244,6 +216,8 @@ fun AnimatedWeeklyChart(
         weekData.forEachIndexed { index, day ->
             val xOffset = (index * slotWidth) + (slotWidth - barWidth) / 2
 
+            val labelText = day.date.format(dayFormatter)
+
             // Logic Flags
             val isFuture = todayIndex != -1 && index > todayIndex
             val isSpotlight = day.ratio >= 0.99f && !isFuture && day.minutes > 0
@@ -254,7 +228,7 @@ fun AnimatedWeeklyChart(
             if (isFuture) {
                 // CASE 1: Future Day (Empty space + Faint label)
                 val textLayout = textMeasurer.measure(
-                    text = day.dayLabel,
+                    text = labelText,
                     style = labelLarge.copy(color = futureColor, fontWeight = FontWeight.Normal)
                 )
                 drawText(
@@ -277,7 +251,7 @@ fun AnimatedWeeklyChart(
                 )
 
                 val textLayout = textMeasurer.measure(
-                    text = day.dayLabel,
+                    text = labelText,
                     style = labelLarge.copy(color = labelColor)
                 )
                 drawText(
@@ -327,7 +301,7 @@ fun AnimatedWeeklyChart(
 
                 // Draw Day Label (M, T, W...)
                 val dayLayout = textMeasurer.measure(
-                    text = day.dayLabel,
+                    text = labelText,
                     style = labelLarge.copy(
                         color = if (isSpotlight) spotlightColor else labelColor
                     )

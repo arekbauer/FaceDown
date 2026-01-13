@@ -116,28 +116,25 @@ class StatsRepositoryImpl @Inject constructor(
             val now = LocalDate.now()
             val zoneId = ZoneId.systemDefault()
 
-            // Calculate "This Week" window (Monday 00:00 -> Sunday 23:59)
-            val startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                .atStartOfDay(zoneId)
-                .toInstant()
-                .toEpochMilli()
+            val mondayDate = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
-            val endOfWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+            // Calculate start/end timestamps for the Database Query
+            val startOfWeekMillis = mondayDate.atStartOfDay(zoneId).toInstant().toEpochMilli()
+            val endOfWeekMillis = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
                 .atTime(LocalTime.MAX)
                 .atZone(zoneId)
                 .toInstant()
                 .toEpochMilli()
 
             // Emit the flow from DB
-            dao.getSessionsInWindow(startOfWeek, endOfWeek).collect { sessions ->
+            dao.getSessionsInWindow(startOfWeekMillis, endOfWeekMillis).collect { sessions ->
 
                 // Group by Day of Week
                 val minutesByDay = sessions.groupBy { session ->
                     Instant.ofEpochMilli(session.timestamp)
                         .atZone(zoneId)
-                        .dayOfWeek // Enum: MONDAY, TUESDAY...
+                        .dayOfWeek
                 }.mapValues { (_, sessionsList) ->
-                    // Directly sum the minutes
                     sessionsList.sumOf { it.durationMinutes }
                 }
 
@@ -147,14 +144,17 @@ class StatsRepositoryImpl @Inject constructor(
                 val safeMax = if (maxMinutes == 0) 1 else maxMinutes
 
                 // E. Build the list of 7 days (Mon-Sun)
-                val barData = DayOfWeek.entries.map { dayOfWeek ->
+                // We iterate 0..6 adding days to Monday to get specific Dates
+                val barData = (0L..6L).map { daysToAdd ->
+                    val dateForBar = mondayDate.plusDays(daysToAdd)
+                    val dayOfWeek = dateForBar.dayOfWeek
                     val minutes = minutesByDay[dayOfWeek] ?: 0
 
                     WeeklyBarData(
-                        dayLabel = dayOfWeek.name.take(3), // "M", "T"...
+                        date = dateForBar,
                         minutes = minutes,
                         ratio = minutes.toFloat() / safeMax.toFloat(),
-                        isToday = dayOfWeek == now.dayOfWeek
+                        isToday = dateForBar.isEqual(now)
                     )
                 }
 
