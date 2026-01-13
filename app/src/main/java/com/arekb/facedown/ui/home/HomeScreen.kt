@@ -86,6 +86,7 @@ import com.arekb.facedown.ui.sendTimerCommand
 import com.arekb.facedown.ui.theme.FaceDownTheme
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -233,7 +234,7 @@ fun TimerSessionView(
     val formattedEndTime = remember(selectedDuration) {
         val now = LocalTime.now()
         val endTime = now.plusMinutes(selectedDuration.toLong())
-        endTime.format(DateTimeFormatter.ofPattern("h:mm a"))
+        endTime.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
     }
 
     var showStopDialog by remember { mutableStateOf(false) }

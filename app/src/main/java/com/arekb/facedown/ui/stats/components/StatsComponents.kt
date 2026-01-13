@@ -534,7 +534,7 @@ fun formatSessionTime(timestamp: Long): String {
         val instant = Instant.ofEpochMilli(timestamp)
         val zoneId = ZoneId.systemDefault()
         val sessionDate = instant.atZone(zoneId).toLocalDate()
-        val today = java.time.LocalDate.now()
+        val today = LocalDate.now()
 
         val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
         val dateFormatter = DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault())
