@@ -43,6 +43,8 @@ import com.arekb.facedown.data.settings.AppTheme
 import com.arekb.facedown.ui.launchEmailIntent
 import com.arekb.facedown.ui.settings.components.FaceDownListItem
 import com.arekb.facedown.ui.settings.components.ItemPosition
+import com.arekb.facedown.ui.settings.components.LanguageSelectionSheet
+import com.arekb.facedown.ui.settings.data.getLanguageDisplayName
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -60,6 +62,8 @@ fun SettingsScreen(
 
     // Local state for the Theme Dialog
     var showThemeDialog by remember { mutableStateOf(false) }
+    var showLanguageSheet by remember { mutableStateOf(false) }
+    val currentLanguage = viewModel.getCurrentLanguage()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -109,9 +113,9 @@ fun SettingsScreen(
                 FaceDownListItem(
                     icon = R.drawable.settings_language,
                     title = stringResource(R.string.app_language),
-                    subtitle = stringResource(R.string.system),
+                    subtitle = getLanguageDisplayName(currentLanguage),
                     position = ItemPosition.Bottom,
-                    onClick = { }, // TODO: Do language options
+                    onClick = { showLanguageSheet = true },
                     trailingContent = null
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -125,8 +129,7 @@ fun SettingsScreen(
                     subtitle = stringResource(R.string.found_an_issue_let_me_know),
                     position = ItemPosition.Top,
                     onClick = {
-                        // TODO: Replace with your actual Google Form URL
-                        uriHandler.openUri("https://forms.gle/YOUR_FORM_ID")
+                        uriHandler.openUri("https://forms.gle/acgUU9GxcHfQTuEG8")
                     },
                     trailingContent = null
                 )
@@ -139,7 +142,7 @@ fun SettingsScreen(
                         @Suppress("HardCodedStringLiteral")
                         launchEmailIntent(
                             context = context,
-                            email = "hello@facedown.app", // TODO: Replace with my email
+                            email = "arek.siwak44@gmail.com",
                             subject = "Contributing to FaceDown Translation"
                         )
                     },
@@ -179,6 +182,18 @@ fun SettingsScreen(
             currentTheme = currentTheme,
             onThemeSelected = { viewModel.updateTheme(it) },
             onDismissRequest = { showThemeDialog = false }
+        )
+    }
+
+    // --- LANGUAGE SHEET ---
+    if (showLanguageSheet) {
+        LanguageSelectionSheet(
+            currentLanguageCode = currentLanguage,
+            onLanguageSelected = { code ->
+                viewModel.setAppLocale(code)
+                showLanguageSheet = false
+            },
+            onDismissRequest = { showLanguageSheet = false }
         )
     }
 }

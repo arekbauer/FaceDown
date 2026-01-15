@@ -1,6 +1,9 @@
 package com.arekb.facedown.ui.settings
 
+import android.app.LocaleManager
+import android.content.Context
 import android.net.Uri
+import android.os.LocaleList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arekb.facedown.data.backup.BackupRepository
@@ -8,6 +11,7 @@ import com.arekb.facedown.data.session.SessionRepository
 import com.arekb.facedown.data.settings.AppTheme
 import com.arekb.facedown.data.settings.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -19,7 +23,8 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val sessionRepository: SessionRepository,
-    private val backupRepository: BackupRepository
+    private val backupRepository: BackupRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     // Expose streams for the UI to observe
@@ -69,6 +74,27 @@ class SettingsViewModel @Inject constructor(
             } else {
                 _uiEvent.send("Export failed.")
             }
+        }
+    }
+
+    // Function to change language
+    fun setAppLocale(languageCode: String) {
+        // For Android 13+ (API 33+)
+        // The system handles storage automatically
+        context.getSystemService(LocaleManager::class.java)
+            ?.applicationLocales = LocaleList.forLanguageTags(languageCode)
+    }
+
+    // Function to get current language tag (for UI display)
+    fun getCurrentLanguage(): String {
+        val currentLocales =
+            context.getSystemService(LocaleManager::class.java)?.applicationLocales
+
+        // If empty, it means "System"
+        return if (currentLocales != null && !currentLocales.isEmpty) {
+            currentLocales.get(0).language
+        } else {
+            "system"
         }
     }
 }

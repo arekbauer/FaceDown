@@ -18,7 +18,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FaceDown">
+        android:theme="@style/Theme.FaceDown"
+        android:localeConfig="@xml/locales_config">
         <service
             android:name=".data.timer.FocusTimerService"
             android:foregroundServiceType="specialUse"

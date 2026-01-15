@@ -83,7 +83,7 @@ fun TimerDisplay(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .widthIn(max = 300.dp)
+            .widthIn(max = 280.dp)
             .aspectRatio(1f)
     ) {
         CustomWavyIndicator(
