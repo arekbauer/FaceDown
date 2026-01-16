@@ -1,8 +1,7 @@
 <p align="center">
-  <img src="assets/app_logo.png" width=140px alt="FaceDown Logo" />
+  <img src="assets/app_logo.png" width=20% alt="FaceDown Logo" />
 </p>
-
-# FaceDown
+<h1 align="center">FaceDown</h1>
 
 
 > **Current Status: Closed Testing**  
