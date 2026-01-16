@@ -18,7 +18,7 @@ data class FocusSession(
 @Suppress("HardCodedStringLiteral")
 enum class TagType(
     val id: String,              // 1. The Stable ID (Saved to DB)
-    @StringRes val labelRes: Int // 2. The Translation Key (Shown in UI)
+    @get:StringRes val labelRes: Int // 2. The Translation Key (Shown in UI)
 ) {
     FOCUS("focus", R.string.focus),
     WORK("work", R.string.work),

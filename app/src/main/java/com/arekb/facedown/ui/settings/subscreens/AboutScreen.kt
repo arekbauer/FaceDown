@@ -120,8 +120,7 @@ fun AboutScreen(
                 icon = R.drawable.settings_privacy,
                 position = ItemPosition.Top,
                 onClick = {
-                    // Replace with your actual hosted policy URL
-                    uriHandler.openUri("https://your-privacy-policy-url.com")
+                    uriHandler.openUri("https://sites.google.com/view/facedownprivacypolicy/")
                 },
                 trailingContent = null
             )

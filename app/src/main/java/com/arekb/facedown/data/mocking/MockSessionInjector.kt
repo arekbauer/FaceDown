@@ -26,26 +26,26 @@ class MockSessionInjector @Inject constructor(
 
         val mockSessions = listOf(
             // 1. TODAY (Active Streak)
-            createSession(offsetDays = 0, minutes = 45, tag = "Focus"),
-            createSession(offsetDays = 0, minutes = 25, tag = "Study"),
+            createSession(offsetDays = 0, minutes = 45, tag = "Focus", note = "Yoga session"),
+            createSession(offsetDays = 0, minutes = 25, tag = "Study", note = "Comp sci flashcards"),
 
             // 2. YESTERDAY (Streak continues)
-            createSession(offsetDays = 1, minutes = 60, tag = "Work"),
+            createSession(offsetDays = 1, minutes = 60, tag = "Work", note = "Editing scripts"),
 
             // 3. TWO DAYS AGO (Streak continues)
-            createSession(offsetDays = 2, minutes = 15, tag = "Read"),
+            createSession(offsetDays = 2, minutes = 15, tag = "Study", note = "Catching up on lectures"),
 
             // 4. FOUR DAYS AGO (Gap! Streak should stop at 3)
-            createSession(offsetDays = 4, minutes = 30, tag = "Read"),
+            createSession(offsetDays = 4, minutes = 30, tag = "Read", note = "Chapters 4-5 of Biology textbook"),
 
             // 5. LAST MONTH (For Heatmap later)
-            createSession(offsetDays = 30, minutes = 50, tag = "Work")
+            createSession(offsetDays = 7, minutes = 50, tag = "Work", note = "Group project coordination")
         )
 
         mockSessions.forEach { sessionDao.insertSession(it) }
     }
 
-    private fun createSession(offsetDays: Long, minutes: Int, tag: String): FocusSession {
+    private fun createSession(offsetDays: Long, minutes: Int, tag: String, note: String): FocusSession {
         // Calculate timestamp for "X days ago"
         // We use LocalDate to ensure we hit the correct "calendar day" regardless of time
         val date = LocalDate.now().minusDays(offsetDays)
@@ -55,7 +55,7 @@ class MockSessionInjector @Inject constructor(
             durationMinutes = minutes,
             timestamp = timestamp,
             tag = tag,
-            note = "Mock Data",
+            note = note
         )
     }
 }
