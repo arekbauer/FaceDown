@@ -41,9 +41,8 @@ Instead of using a heavy charting library for the simple weekly statistics, I bu
 
 ### 3. Reactive Foreground Service
 The core timer loop runs within a robust **Android Foreground Service** to guarantee execution even when the device is dozing.
-- **Flow Composition**: Instead of a basic `CountDownTimer`, I use Kotlin's `combine` operator to merge a 1-second heartbeat `Flow` with the real-time `SensorFlow`.
 - **State Machine**: This reactive stream powers the "Grace Period" logic, automatically triggering the 10-second recovery window when the `OrientationState` shifts to `FaceUp`.
-
+- **Haptics & Audio**: interacting with `Vibrator` and `AudioPlayer` for completion alarms and success feedback, respecting user preferences via `SettingsRepository`.
 
 ### 4. System Integration (Do Not Disturb)
 The app interacts directly with the Android System Services to mute notifications during deep focus. This requires handling runtime permissions (`ACCESS_NOTIFICATION_POLICY`) and managing the Interruption Filter state safely. 
