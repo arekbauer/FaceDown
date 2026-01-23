@@ -560,11 +560,11 @@ fun TimerSessionView(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // TODO: Look into on press it taking up two lines, maybe just remove the bouncy effect
                         ButtonGroup(
                             overflowIndicator = { menuState ->
                                 ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
-                            }
+                            },
+                            expandedRatio = 0f
                         ) {
                             tagOptions.forEach { (tagEnum, labelText) ->
                                 val isSelected = (tagEnum == selectedTag)
@@ -633,7 +633,7 @@ fun TimerPreviewWrapper(content: @Composable () -> Unit) {
 }
 
 // 1. IDLE STATE (The Setup Screen)
-@Preview(name = "1. Idle State", showBackground = true, device = "spec:width=411dp,height=891dp")
+@Preview(name = "1. Idle State", showBackground = true, device = "spec:width=350dp,height=891dp")
 @Composable
 fun PreviewTimerSession_Idle() {
     TimerPreviewWrapper {

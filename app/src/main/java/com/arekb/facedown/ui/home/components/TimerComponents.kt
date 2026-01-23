@@ -186,7 +186,7 @@ fun PresetButtonGroup(
                             else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                         },
                     ) {
-                        Text("${mins}m")
+                        Text("$mins", maxLines = 1)
                     }
                 }
             ) {
