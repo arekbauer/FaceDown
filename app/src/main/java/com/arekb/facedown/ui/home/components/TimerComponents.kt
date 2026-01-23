@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
@@ -76,13 +75,14 @@ fun TimerDisplay(
     mainText: String,
     secondaryText: String,
     progressAnimationSpec: AnimationSpec<Float>,
+    modifier: Modifier = Modifier,
     mainTextSize: TextUnit = 96.sp,
     colour: Color = MaterialTheme.colorScheme.primary,
     trackColour : Color = MaterialTheme.colorScheme.secondaryContainer
 ) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
+        modifier = modifier
             .widthIn(max = 280.dp)
             .aspectRatio(1f)
     ) {
@@ -156,12 +156,13 @@ fun PresetButtonGroup(
 ) {
     // 1. Calculate height once based on screen size (or pass it in)
     val config = LocalConfiguration.current
-    val responsiveHeight = (config.screenHeightDp.dp * 0.05f).coerceIn(56.dp, 88.dp)
+    val screenHeight = config.screenHeightDp.dp
+    val responsiveHeight = if (screenHeight < 600.dp) 48.dp else 56.dp
     val interactionSources = remember(presets) { presets.map { MutableInteractionSource() } }
 
     ButtonGroup(
         modifier = modifier
-            .widthIn(max = 500.dp),
+            .widthIn(max = 380.dp),
         overflowIndicator = { menuState ->
             ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
         }
@@ -315,7 +316,7 @@ fun TimerControlBar(
     // We use a high-contrast container for the controls
     ButtonGroup(
         modifier = modifier
-            .fillMaxWidth()
+            .widthIn(max = 380.dp)
             .navigationBarsPadding()
             .padding(horizontal = 8.dp, vertical = 32.dp),
         overflowIndicator = {}
@@ -391,7 +392,8 @@ fun TimerControlBar(
 fun EndTimerDisplay(
     colour: Color,
     icon: ImageVector,
-    iconColour: Color
+    iconColour: Color,
+    modifier: Modifier = Modifier
 ) {
     val thickStrokeWidth = with(LocalDensity.current) { 12.dp.toPx() }
     val thickStroke =
@@ -404,7 +406,7 @@ fun EndTimerDisplay(
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
+        modifier = modifier
             .widthIn(max = 200.dp)
             .aspectRatio(1f)
     ) {

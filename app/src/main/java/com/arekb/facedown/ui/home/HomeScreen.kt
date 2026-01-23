@@ -1,6 +1,7 @@
 package com.arekb.facedown.ui.home
 
 import android.Manifest
+import android.R.attr.onClick
 import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.content.Context
@@ -11,6 +12,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,11 +20,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -55,6 +59,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
@@ -269,6 +274,7 @@ fun TimerSessionView(
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxSize()
             .padding(layoutPadding)
@@ -278,37 +284,41 @@ fun TimerSessionView(
         when (state) {
             is TimerState.Idle -> {
                 val progress = (selectedDuration / 60f).coerceIn(0f, 1f)
-                TimerDisplay(
-                    progress = progress,
-                    mainText = "$selectedDuration",
-                    secondaryText = stringResource(R.string.minutes),
-                    progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    TimerDisplay(
+                        progress = progress,
+                        mainText = "$selectedDuration",
+                        secondaryText = stringResource(R.string.minutes),
+                        progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+                        modifier = Modifier.fillMaxHeight(0.4f)
+                    )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                InfoPill(
-                    icon = R.drawable.icons_schedule_outline,
-                    string = stringResource(R.string.ends_at) + " " + formattedEndTime
-                )
+                    InfoPill(
+                        icon = R.drawable.icons_schedule_outline,
+                        string = stringResource(R.string.ends_at) + " " + formattedEndTime
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    PresetButtonGroup(
+                        presets = listOf(5, 10, 15, 25),
+                        currentDuration = selectedDuration,
+                        onDurationChange = onDurationChange,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                PresetButtonGroup(
-                    presets = listOf(5, 10, 15, 25),
-                    currentDuration = selectedDuration,
-                    onDurationChange = onDurationChange,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                PresetButtonGroup(
-                    presets = listOf(30, 45, 50, 60),
-                    currentDuration = selectedDuration,
-                    onDurationChange = onDurationChange,
-                )
-
-                Spacer(modifier = Modifier.height(52.dp))
+                    PresetButtonGroup(
+                        presets = listOf(30, 45, 50, 60),
+                        currentDuration = selectedDuration,
+                        onDurationChange = onDurationChange
+                    )
+                }
 
                 FilledTonalButton(
                     onClick = { onStartClicked(selectedDuration) },
@@ -326,28 +336,27 @@ fun TimerSessionView(
 
             is TimerState.Startup -> {
                 val progress = (state.countdownSeconds / STARTING_COUNTDOWN.toFloat()).coerceIn(0f, 1f)
-                TimerDisplay(
-                    progress = progress,
-                    mainText = "${state.countdownSeconds}",
-                    secondaryText = stringResource(R.string.seconds),
-                    progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                InfoPill(
-                    icon = R.drawable.icons_schedule_outline,
-                    string = selectedDuration.toString() + " " + stringResource(R.string.min_session)
-                )
-
-                Spacer(modifier = Modifier.height(64.dp))
-
-                Text(
-                    text = stringResource(R.string.start_focus),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-
-                Spacer(modifier = Modifier.height(48.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    TimerDisplay(
+                        progress = progress,
+                        mainText = "${state.countdownSeconds}",
+                        secondaryText = stringResource(R.string.seconds),
+                        progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+                        modifier = Modifier.fillMaxHeight(0.4f)
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    InfoPill(
+                        icon = R.drawable.icons_schedule_outline,
+                        string = selectedDuration.toString() + " " + stringResource(R.string.min_session)
+                    )
+                    Spacer(modifier = Modifier.height(64.dp))
+                    Text(
+                        text = stringResource(R.string.start_focus),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
 
                 SimpleFlowingArrows(
                     modifier = Modifier.fillMaxWidth()
@@ -356,29 +365,28 @@ fun TimerSessionView(
 
             is TimerState.Running -> {
                 val progress = (state.remainingSeconds / (selectedDuration * 60).toFloat()).coerceIn(0f, 1f)
-
-                TimerDisplay(
-                    progress = progress,
-                    mainText = formatTime(state.remainingSeconds),
-                    secondaryText = stringResource(R.string.remaining),
-                    mainTextSize = 72.sp,
-                    progressAnimationSpec = tween(durationMillis = 1000, easing = LinearEasing)
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                InfoPill(
-                    icon = R.drawable.icon_pause_filled,
-                    string = stringResource(R.string.lift_to_pause)
-                )
-
-                Spacer(modifier = Modifier.height(64.dp))
-
-                Text(
-                    text = stringResource(R.string.timer_in_progress),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    TimerDisplay(
+                        progress = progress,
+                        mainText = formatTime(state.remainingSeconds),
+                        secondaryText = stringResource(R.string.remaining),
+                        mainTextSize = 72.sp,
+                        progressAnimationSpec = tween(durationMillis = 1000, easing = LinearEasing),
+                        modifier = Modifier.fillMaxHeight(0.4f)
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    InfoPill(
+                        icon = R.drawable.icon_pause_filled,
+                        string = stringResource(R.string.lift_to_pause)
+                    )
+                    Spacer(modifier = Modifier.height(64.dp))
+                    Text(
+                        text = stringResource(R.string.timer_in_progress),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
 //                    Spacer(modifier = Modifier.weight(1f))
 //
 //                    OutlinedButton(
@@ -403,28 +411,29 @@ fun TimerSessionView(
                     secondaryText = stringResource(R.string.fail_in),
                     progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
                     colour = MaterialTheme.colorScheme.error,
-                    trackColour = MaterialTheme.colorScheme.errorContainer
+                    trackColour = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.fillMaxHeight(0.4f)
                 )
 
-                Spacer(modifier = Modifier.height(120.dp))
-
-                Text(
-                    text = stringResource(R.string.keep_focusing),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Text(
-                    text = stringResource(R.string.flip_phone_resume),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(48.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(R.string.keep_focusing),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Text(
+                        text = stringResource(R.string.flip_phone_resume),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 SimpleFlowingArrows(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.error
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
                 TimerControlBar(
                     isPaused = false ,
                     onPauseResume = { sendTimerCommand(context, ServiceConstants.ACTION_PAUSE) },
@@ -436,36 +445,42 @@ fun TimerSessionView(
 
             is TimerState.Paused -> {
                 val progress = (state.remainingSeconds / (selectedDuration * 60).toFloat()).coerceIn(0f, 1f)
-                TimerDisplay(
-                    progress = progress,
-                    mainText = formatTime(state.remainingSeconds),
-                    secondaryText = stringResource(R.string.remaining),
-                    progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
-                    mainTextSize = 72.sp,
-                    colour = MaterialTheme.colorScheme.onSurfaceVariant,
-                    trackColour = MaterialTheme.colorScheme.surfaceVariant
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    TimerDisplay(
+                        progress = progress,
+                        mainText = formatTime(state.remainingSeconds),
+                        secondaryText = stringResource(R.string.remaining),
+                        progressAnimationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+                        mainTextSize = 72.sp,
+                        colour = MaterialTheme.colorScheme.onSurfaceVariant,
+                        trackColour = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.fillMaxHeight(0.4f)
+                    )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                InfoPill(
-                    icon = R.drawable.icon_dnd_off_filled,
-                    string = stringResource(R.string.dnd_off)
-                )
+                    InfoPill(
+                        icon = R.drawable.icon_dnd_off_filled,
+                        string = stringResource(R.string.dnd_off)
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(64.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(R.string.session_paused),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Text(
+                        text = stringResource(R.string.continue_ready),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-                Text(
-                    text = stringResource(R.string.session_paused),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Text(
-                    text = stringResource(R.string.continue_ready),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
                 TimerControlBar(
                     isPaused = true ,
                     onPauseResume = { sendTimerCommand(context, ServiceConstants.ACTION_RESUME) },
@@ -477,23 +492,25 @@ fun TimerSessionView(
                 EndTimerDisplay(
                     colour = MaterialTheme.colorScheme.errorContainer,
                     icon = Icons.Rounded.Close,
-                    iconColour = MaterialTheme.colorScheme.error
+                    iconColour = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxHeight(0.25f)
                 )
 
-                Spacer(modifier = Modifier.height(120.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(R.string.session_failed),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
 
-                Text(
-                    text = stringResource(R.string.session_failed),
-                    style = MaterialTheme.typography.titleLarge,
-                )
+                    Text(
+                        text = stringResource(R.string.phone_down_late),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-                Text(
-                    text = stringResource(R.string.phone_down_late),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
                 FilledTonalButton(
                     onClick = onReset,
                     modifier = Modifier
@@ -513,36 +530,41 @@ fun TimerSessionView(
                 val tagOptions = TagType.entries.map { tag ->
                     tag to stringResource(tag.labelRes)
                 }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    EndTimerDisplay(
+                        colour = colorResource(R.color.mint_green),
+                        icon = Icons.Rounded.Check,
+                        iconColour = colorResource(R.color.leaf_green),
+                        modifier = Modifier.fillMaxHeight(0.25f)
+                    )
 
-                EndTimerDisplay(
-                    colour = colorResource(R.color.mint_green),
-                    icon = Icons.Rounded.Check,
-                    iconColour = colorResource(R.color.leaf_green)
-                )
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    InfoPill(
+                        icon = R.drawable.icon_dnd_off_filled,
+                        string = stringResource(R.string.dnd_off)
+                    )
+                }
 
-                InfoPill(
-                    icon = R.drawable.icon_dnd_off_filled,
-                    string = stringResource(R.string.dnd_off)
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(R.string.session_complete),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = stringResource(R.string.you_focused_for) + " "
+                                + state.totalDurationMinutes.toString() + " "
+                                + stringResource(R.string.minutes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-                Text(
-                    text = stringResource(R.string.session_complete),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-
-                Text(
-                    text = stringResource(R.string.you_focused_for) + " "
-                            + state.totalDurationMinutes.toString() + " "
-                            + stringResource(R.string.minutes),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(48.dp))
 
                 Box(
                     modifier = Modifier
@@ -602,7 +624,6 @@ fun TimerSessionView(
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
                 FilledTonalButton(
                     onClick = {
                         val minutes = state.totalDurationMinutes
@@ -611,7 +632,6 @@ fun TimerSessionView(
                     },
                     modifier = Modifier
                         .navigationBarsPadding()
-                        .padding(bottom = 48.dp)
                         .height(80.dp)
                         .widthIn(min = 224.dp, max = 300.dp),
                     shape = MaterialTheme.shapes.extraLargeIncreased
