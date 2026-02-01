@@ -1,17 +1,24 @@
 <p align="center">
-  <img src="assets/app_logo.png" width=20% alt="FaceDown Logo" />
+  <img src="assets/app_logo.png" width=15% alt="FaceDown Logo" />
 </p>
 <h1 align="center">FaceDown</h1>
 
-
-> **Current Status: Closed Testing**  
-> FaceDown is currently in the **Google Play Closed Testing** phase.
+> **Current Status: Closed Testing** > FaceDown is currently in the **Google Play Closed Testing** phase.
 > 
 > I am actively looking for testers to help bring this app to production! If you would like to provide feedback, please [reach out to me](#contact).  
-> For now, you can download the APK here **[here](app-release.apk)**.
+> For now, you can download the APK **[here](app-release.apk)**.
 
 > **Note**: This repository is a technical showcase for a private productivity application called "FaceDown". It contains sanitized snippets of the core engineering challenges to demonstrate architectural and technical capabilities.
 
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=iY3FBMTA15A&t=327s">
+    <img src="https://img.youtube.com/vi/iY3FBMTA15A/0.jpg" width="600px" alt="FaceDown featured on HowToMen" />
+  </a>
+  <br>
+  <i>Featured in <b>HowToMen's</b> "Top 15 Best Android Apps" - "Honestly a really great app to help you stay more productive."</i>
+</p>
+
+---
 FaceDown is a minimal timer that enforces focus by requiring the user to place their phone **face down** on a table. If the phone is picked up or flipped over, the timer pauses, ensuring a distraction-free environment.  
 
 
