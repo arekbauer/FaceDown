@@ -97,5 +97,8 @@ com.arekb.facedown
 
 </details>
 
+## Credits & Inspiration
+* UI/UX inspired by the [Tomato App](https://github.com/nsh07/Tomato).
+
 ### Contact
 [LinkedIn Profile](https://www.linkedin.com/in/arkadiusz-bauer/) | [Portfolio Website](https://arekbauer.com)
