@@ -3,11 +3,10 @@
 </p>
 <h1 align="center">FaceDown</h1>
 
-> **Current Status: Production Pending**
->
-> The **Google Play Closed Testing** phase is now complete! I have officially applied for **Production Access**, and the app is currently under review by Google.
->
-> A public release is imminent! If everything goes smoothly, the app should be live on the Play Store within the next week. Until then, you can still download the latest pre-release APK **[here](app-release.apk)**.
+> **Current Status: Closed Testing**  
+> FaceDown is currently in the **Google Play Closed Testing** phase.
+> I am actively looking for testers to help bring this app to production! If you would like to provide feedback, please [reach out to me](#contact).  
+> For now, you can download the APK **[here](app-release.apk)**.
 
 > **Note**: This repository is a technical showcase for a private productivity application called "FaceDown". It contains sanitized snippets of the core engineering challenges to demonstrate architectural and technical capabilities.
 
