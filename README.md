@@ -5,7 +5,7 @@
 
 > **Current Status: Closed Testing**  
 > FaceDown is currently in the **Google Play Closed Testing** phase.
-> I am actively looking for testers to help bring this app to production! If you would like to provide feedback, please [reach out to me](#contact).  
+> I am actively looking for testers to help bring this app to production! If you would like to help get FaceDown onto the Play Store, please fill out **[this form](https://forms.gle/4GPZwG3B6KmC5npB9)**.  
 > For now, you can download the APK **[here](app-release.apk)**.
 
 > **Note**: This repository is a technical showcase for a private productivity application called "FaceDown". It contains sanitized snippets of the core engineering challenges to demonstrate architectural and technical capabilities.
