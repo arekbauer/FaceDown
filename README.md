@@ -1,12 +1,14 @@
 <p align="center">
   <img src="assets/app_logo.png" width=15% alt="FaceDown Logo" />
+  <br>
+  <h1 align="center">FaceDown</h1>
 </p>
-<h1 align="center">FaceDown</h1>
 
-> **Current Status: Closed Testing**  
-> FaceDown is currently in the **Google Play Closed Testing** phase.
-> I am actively looking for testers to help bring this app to production! If you would like to help get FaceDown onto the Play Store, please fill out **[this form](https://forms.gle/4GPZwG3B6KmC5npB9)**.  
-> For now, you can download the APK **[here](app-release.apk)**.
+<p align="center">
+<a href='https://play.google.com/store/apps/details?id=com.arekb.facedown'>
+  <img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width="250"/>
+</a>
+</p>
 
 > **Note**: This repository is a technical showcase for a private productivity application called "FaceDown". It contains sanitized snippets of the core engineering challenges to demonstrate architectural and technical capabilities.
 
@@ -67,7 +69,7 @@ com.arekb.facedown
 ├── ui                   # UI Layer (Jetpack Compose)
 │   ├── home             # Timer & Canvas Charts
 │   ├── stats            # Statistics & History
-│   └── settings         # Statistics & History
+│   └── settings         # User Preferences & App Configuration
 └── di                   # Hilt Dependency Injection Modules
 ```
 
@@ -97,8 +99,9 @@ com.arekb.facedown
 
 </details>
 
-## Credits & Inspiration
+## Credits & Contributiors
 * UI/UX inspired by the [Tomato App](https://github.com/nsh07/Tomato).
+* **Babrr**: New icon design
 
 ### Contact
 [LinkedIn Profile](https://www.linkedin.com/in/arkadiusz-bauer/) | [Portfolio Website](https://arekbauer.com)
