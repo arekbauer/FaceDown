@@ -23,7 +23,6 @@
 ---
 FaceDown is a minimal timer that enforces focus by requiring the user to place their phone **face down** on a table. If the phone is picked up or flipped over, the timer pauses, ensuring a distraction-free environment.  
 
-
 <p align="center">
   <img src="assets/home3.png" width="30%" alt="Timer Face Up" />
   <img src="assets/stats.png" width="30%" alt="Weekly Stats" />
@@ -32,55 +31,68 @@ FaceDown is a minimal timer that enforces focus by requiring the user to place t
 
 ## Engineering Highlights
 
-### 1. Sensor Fusion & Coroutines
-The core mechanic relies on the device's accelerometer. I implemented a clean `Flow`-based repository that bridges the legacy `SensorManager` callback API with modern Kotlin Coroutines.
-- **Debouncing**: Logic ensures minor vibrations don't trigger state changes.
-- **Battery Efficiency**: The listener is automatically unregistered when the UI lifecycle stops collecting the Flow (via `awaitClose`).
+### 1. Robust Foreground Service & State Bridging
+The core timer loop runs within an **Android Foreground Service** (using the new `SPECIAL_USE` type) to guarantee precision execution even when the device is dozing. 
+- **In-Memory State Bus**: To communicate seamlessly with the UI, a singleton `TimerRepository` manages a `MutableStateFlow` that bridges the Service and any observing ViewModels.
+- **Grace Period Logic**: The service reacts to a combined flow of the timer ticker and physical orientation, automatically triggering a 10-second recovery window when the user picks up the phone.
+- **WakeLock Management**: Carefully manages `PARTIAL_WAKE_LOCK` across all pause, failure, and completion states to prevent battery drain.
+
+### 2. Sensor Fusion & Coroutines
+The core physical mechanic relies on the device's accelerometer. I implemented a clean `Flow`-based repository that bridges the legacy `SensorManager` callback API with modern Kotlin Coroutines.
+- **Debouncing**: `distinctUntilChanged()` ensures minor vibrations don't trigger state updates.
+- **Battery Efficiency**: The listener is registered as a cold `callbackFlow`, automatically unregistering when no longer collected (e.g., when the service stops).
   
 *(See [SensorLogic.kt](snippets/SensorLogic.kt) for the full implementation)*
 
-### 2. Custom Canvas Drawing
-Instead of using a heavy charting library for the simple weekly statistics, I built a custom **Jetpack Compose Canvas** component.
-- **Performance**: Draws the entire chart in a single pass.
+### 3. Glance AppWidgets & Lifecycle Sync
+To provide quick access to focus stats without opening the app, I built home screen widgets using **Jetpack Glance**. 
+- **Reactive Syncing**: Uses a `ProcessLifecycleOwner` observer to trigger a custom `SyncWidgetsUseCase` only when the app enters the foreground, ensuring widget data (daily minutes, current streak) stays perfectly in sync with the Room database without unnecessary background processing.
+
+### 4. Custom Compose Drawing
+Instead of relying on heavy charting libraries for the weekly statistics, I built custom **Jetpack Compose Canvas** components.
+- **Performance**: Draws the entire chart geometry dynamically in a single pass based on available screen width.
 - **Animation**: Uses independent `Animatable` states for each bar to create a staggered "wave" entrance effect.
-- **Responsiveness**: Calculates geometry dynamically based on available width.  
 
 *(See [WeeklyStatsChart.kt](snippets/WeeklyStatsChart.kt) for the drawing logic)*
 
-### 3. Reactive Foreground Service
-The core timer loop runs within a robust **Android Foreground Service** to guarantee execution even when the device is dozing.
-- **State Machine**: This reactive stream powers the "Grace Period" logic, automatically triggering the 10-second recovery window when the `OrientationState` shifts to `FaceUp`.
-- **Haptics & Audio**: interacting with `Vibrator` and `AudioPlayer` for completion alarms and success feedback, respecting user preferences via `SettingsRepository`.
-
-### 4. System Integration (Do Not Disturb)
-The app interacts directly with the Android System Services to mute notifications during deep focus. This requires handling runtime permissions (`ACCESS_NOTIFICATION_POLICY`) and managing the Interruption Filter state safely. 
+### 5. Comprehensive Testing Infrastructure
+The app's complex state rules are heavily tested across unit and integration layers:
+- **Unit Testing**: Pure business logic (streak calculation, UseCases) and ViewModels are verified using `JUnit 4`, `MockK`, and `kotlinx-coroutines-test`.
+- **UI & E2E Testing**: Composable screens and critical flows are tested using `ComposeTestRule` and `HiltTestRunner` on Android instrumentation.
+- **Database Mocking**: Utilizes a custom `MockSessionInjector` for programmatic local database seeding during development and structured DB tests.
 
 ## Architecture
-The app follows the recommended **Clean Architecture** guidelines, separating concerns into Data, Domain, and UI layers.
+The app follows the recommended **Clean Architecture** guidelines and **MVVM** pattern, strictly separating concerns:
 
 ```text
 com.arekb.facedown
-├── data                 # Data Layer (Repositories, Sources)
-│   ├── database         # Room Entities & DAOs
-│   ├── sensor           # Accelerometer Implementation
-│   └── timer            # System Service Wrappers
-├── domain               # Domain Layer (Pure Kotlin)
-│   └── model            # Core Business Models (FocusSession, etc)
-├── ui                   # UI Layer (Jetpack Compose)
-│   ├── home             # Timer & Canvas Charts
-│   ├── stats            # Statistics & History
-│   └── settings         # User Preferences & App Configuration
+├── data                 # Data Layer
+│   ├── database         # Room Entities, DAOs, & Mocking Injector
+│   ├── sensor           # Accelerometer callbackFlow wrappers
+│   ├── timer            # ForegroundService & Repository State Bridges
+│   └── widget           # DataStore Preferences for Widgets
+├── domain               # Domain Layer
+│   ├── model            # Sealed Interfaces for State (TimerState)
+│   └── usecase          # Coordinated logic (e.g., SyncWidgetsUseCase)
+├── ui                   # Presentation Layer (Jetpack Compose)
+│   ├── home             # Timer UI & State Sub-components
+│   ├── stats            # Statistics, History Paging, Canvas Charts
+│   ├── settings         # User Preferences
+│   └── widget           # Glance AppWidget Implementations
 └── di                   # Hilt Dependency Injection Modules
 ```
 
 ### Tech Stack
-- Languages: Kotlin
-- UI: Jetpack Compose (Material 3 Expressive)
-- Architecture: MVVM, Clean Architecture, Single Activity
-- DI: Hilt
-- Async: Coroutines & Flow
-- Local Data: Room Database
-- Hardware: Android SensorManager (Accelerometer)
+- **Language**: Kotlin
+- **UI**: Jetpack Compose (Material 3 Expressive)
+- **Widgets**: Jetpack Glance AppWidgets
+- **Architecture**: MVVM, Clean Architecture
+- **DI**: Hilt (Dagger) with KSP
+- **Async**: Coroutines & Flow (`StateFlow` / `callbackFlow`)
+- **Local Data**: Room Database (with Paging 3), Jetpack DataStore
+- **Testing**: JUnit 4, MockK, Compose UI Tests, Hilt Android Testing
+- **Hardware/System**: Android `SensorManager` (Accelerometer), Foreground Services, WakeLocks, `NotificationManager` (DnD)
+
 
 
 ## App Showcase
